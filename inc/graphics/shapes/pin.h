@@ -8,6 +8,8 @@
 
 #include "vector"
 using std::vector;
+using std::string;
+
 
 class Pin   :   public Shape
 {
@@ -24,7 +26,13 @@ class Pin   :   public Shape
         Pin(Type type,int angle);
         ~Pin();
 
+        void label(const string &label);
+        const string &label() const;
+        void voltage(float voltage);
+        float voltage() const;
+
         Vector2i connectionPoint();
+        Type type() const;
 
         virtual void draw(sf::RenderWindow *window, Vector2i drawPos = Vector2i(0,0));
 
@@ -38,7 +46,6 @@ class Pin   :   public Shape
         void removeFromBlacklist(Type type);
         void removeFromBlacklist(const vector<Type > typeList);
 
-
     protected:
         // From ToolListener
         virtual void toolChanged(Tool *oldTool, Tool *newTool);
@@ -50,6 +57,7 @@ class Pin   :   public Shape
 
 
     private:
+
         void createConnection(Pin *other);
         void deleteConnection(Pin *other);
         Connection *getConnection(Pin *other);
@@ -61,11 +69,16 @@ class Pin   :   public Shape
 
         Vector2i m_pinDimensions;
         unsigned int m_angle;
+
         Color m_color;
         Color m_defaultColor;
-        Color m_selectedColor;
+        static Color m_selectedColor;
+
+
         Type m_type;
         Vector2i m_connectionPoint;
+        string m_label;
+        float m_voltage;
 
 
         bool m_startConnecting;

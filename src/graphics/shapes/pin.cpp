@@ -1,6 +1,9 @@
 #include "pin.h"
 
 Pin *Pin::m_tmpIsConnectingToPin = nullptr;
+
+Color Pin::m_selectedColor    = Color(0,200,0);
+
 Pin::Pin()
 {
     Pin(Type::input,0);
@@ -23,16 +26,32 @@ Pin::Pin(Type type,int angle)
     m_angle = angle;
     m_pinDimensions = Vector2i(20,6);
     m_defaultColor = Color(150,150,150);
-    m_selectedColor = Color(0,200,0);
     m_color = m_defaultColor;
     m_useGrid = false;
     m_startConnecting = false;
+    m_voltage = 0;
+    m_label = "Pin";
 }
 Pin::~Pin()
 {
 
 }
-
+void Pin::label(const string &label)
+{
+    m_label = label;
+}
+const string &Pin::label() const
+{
+    return m_label;
+}
+void Pin::voltage(float voltage)
+{
+    m_voltage = voltage;
+}
+float Pin::voltage() const
+{
+    return m_voltage;
+}
 Vector2i Pin::connectionPoint()
 {
     switch(m_angle)
@@ -65,6 +84,10 @@ Vector2i Pin::connectionPoint()
         m_connectionPoint += m_parent->getPos();
     }
     return m_connectionPoint;
+}
+Pin::Type Pin::type() const
+{
+    return m_type;
 }
 void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
 {
@@ -104,15 +127,26 @@ void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
         }
     }
 
-
-
-
-
-
     sf::RectangleShape line((Vector2f(m_pinDimensions)));
     line.setOrigin(Vector2f(0,m_pinDimensions.y/2));
     line.rotate(m_angle);
-    line.setFillColor(m_color);
+
+    if(Physics::displayPhysical)
+    {
+        if(m_type != Type::output) // Update the voltage
+        {
+            for(size_t i=0; i<m_connectedToList.size(); i++)
+            {
+                if(m_connectedToList[i]->m_type == Type::output)
+                {
+                    m_voltage = m_connectedToList[i]->m_voltage;
+                }
+            }
+        }
+        line.setFillColor(Physics::coloredVoltage(m_voltage));
+    }
+    else
+        line.setFillColor(m_color);
 
     line.setPosition((Vector2f(drawPos)));
 
@@ -187,6 +221,7 @@ void Pin::removeFromBlacklist(const vector<Type > typeList)
     for(size_t i=0; i<typeList.size(); i++)
         removeFromBlacklist(typeList[i]);
 }
+
 void Pin::onEventUpdate(sf::RenderWindow *window)
 {
 

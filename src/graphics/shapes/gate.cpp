@@ -1,31 +1,33 @@
 #include "gate.h"
 
 sf::Font* Gate::m_font = nullptr;
+vector<Gate *> Gate::m_globalGatelIst;
 
-Gate::Gate()
+Gate::Gate(int inputs, int outputs)
 {
-    setup();
+    setup(inputs,outputs);
 }
-Gate::Gate(Vector2i pos)
+Gate::Gate(Vector2i pos,int inputs, int outputs)
 {
-    setup();
+    setup(inputs,outputs);
     m_position = pos;
 }
-void Gate::setup()
+void Gate::setup(int inputs, int outputs)
 {
-    int inputPins = 4;
-    int outputPins = 2;
+    m_globalGatelIst.push_back(this);
+    //int inputPins = 4;
+    //int outputPins = 2;
     m_position = Vector2i(100,150);
 
 
 
-    if(inputPins > outputPins)
+    if(inputs > outputs)
     {
 
-        m_dimensions = Vector2i(m_gridsize.x*5,m_gridsize.y*(inputPins*2));
+        m_dimensions = Vector2i(m_gridsize.x*5,m_gridsize.y*(inputs*2));
     }else
     {
-        m_dimensions = Vector2i(m_gridsize.x*5,m_gridsize.y*(outputPins*2));
+        m_dimensions = Vector2i(m_gridsize.x*5,m_gridsize.y*(outputs*2));
     }
 
 
@@ -33,7 +35,7 @@ void Gate::setup()
     m_boundingBox.set(Vector2i(m_position.x-m_dimensions.x/2,m_position.y-m_dimensions.y/2),
                       m_position + m_dimensions);
 
-    setupPins(inputPins,outputPins);
+    setupPins(inputs,outputs);
     m_moving = false;
     if(m_font == nullptr)
     {
@@ -45,7 +47,8 @@ void Gate::setup()
     }
     m_label.setFont(*m_font);
     m_label.setString("Gate");
-    m_label.setCharacterSize(20);
+    m_label.scale(0.1,0.1);
+    m_label.setCharacterSize(150);
     //m_label.setScale(100,100);
     m_label.setFillColor(Color(20,20,20));
     m_label.setStyle(sf::Text::Bold);
@@ -53,6 +56,9 @@ void Gate::setup()
 
 Gate::~Gate()
 {
+    for(size_t i=0; i<m_globalGatelIst.size(); i++)
+        if(m_globalGatelIst[i] == this)
+            m_globalGatelIst.erase(m_globalGatelIst.begin() + i);
 
 }
 
@@ -133,6 +139,10 @@ void Gate::setupPins(int inputs, int outputs)
     }
 
 }
+void Gate::processLogic()
+{
+
+}
 
 void Gate::draw(sf::RenderWindow *window, Vector2i drawPos)
 {
@@ -169,19 +179,20 @@ void Gate::draw(sf::RenderWindow *window, Vector2i drawPos)
     convex.setPosition((Vector2f(drawPos)));
 
     sf::FloatRect labelBounds = m_label.getGlobalBounds();
-    m_label.setOrigin(labelBounds.width/2,labelBounds.height-labelBounds.height/10);
+    m_label.setOrigin(labelBounds.width/2/m_label.getScale().x,
+                      (labelBounds.height-labelBounds.height/10)/m_label.getScale().y);
     m_label.setPosition((Vector2f(drawPos)));
    // qDebug() << "Bounds: "<<labelBounds.width << " " <<labelBounds.height;
 
-   /* Color col(255,0,0);
+    /**Color col(255,0,0);
     sf::Vertex line[] =
     {
         sf::Vertex(Vector2f(drawPos),col),
         sf::Vertex(Vector2f(drawPos+Vector2i(labelBounds.width,0)),col),
         sf::Vertex(Vector2f(drawPos+Vector2i(labelBounds.width,labelBounds.height)),col),
         sf::Vertex(Vector2f(drawPos+Vector2i(0,labelBounds.height)),col)
-    };*/
-
+    };
+*/
 
    /* for(size_t i=0; i<m_inputPins.size(); i++)
     {
@@ -198,6 +209,11 @@ void Gate::draw(sf::RenderWindow *window, Vector2i drawPos)
    // window->draw(line,4,sf::LineStrip);
 }
 
+void Gate::global_processLogic()
+{
+    for(size_t i=0; i<m_globalGatelIst.size(); i++)
+        m_globalGatelIst[i]->processLogic();
+}
 void Gate::toolChanged(Tool *oldTool, Tool *newTool)
 {
     toolCleared(oldTool);

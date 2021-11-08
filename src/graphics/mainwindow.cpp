@@ -7,6 +7,10 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    m_simulationTimer = new QTimer(this);
+    connect(m_simulationTimer,&QTimer::timeout,this,&MainWindow::onSimulateIteration);
+    m_simulationTimeMS = 100;
+
    /* QFrame* MainFrame = new QFrame(this);
     MainFrame->setWindowTitle("Qt SFML");
     MainFrame->resize(400, 400);
@@ -21,11 +25,29 @@ MainWindow::MainWindow(QWidget *parent)
     m_tool_disconnect = new Tool(Tool::Type::signalRemover);
 
     m_grid = new Grid();
-    m_shapes.push_back(new Gate(Vector2i(200,80)));
-    m_shapes.push_back(new Gate());
+
+    LogicGate_CONST *cGate1 = new LogicGate_CONST(Vector2i(100,80));
+    cGate1->voltage(5);
+    LogicGate_CONST *cGate2 = new LogicGate_CONST(Vector2i(100,120));
+    cGate2->voltage(5);
+    LogicGate_CONST *cGate3 = new LogicGate_CONST(Vector2i(100,160));
+    cGate3->voltage(5);
+
+    m_shapes.push_back(cGate1);
+    m_shapes.push_back(cGate2);
+    m_shapes.push_back(cGate3);
+    m_shapes.push_back(new LogicGate_AND(Vector2i(200,80),2));
+    m_shapes.push_back(new LogicGate_AND(Vector2i(300,80),2));
+    m_shapes.push_back(new LogicGate_AND(Vector2i(100,80),2));
+    m_shapes.push_back(new LogicGate_AND(Vector2i(400,80),3));
+    //m_shapes.push_back(new Gate(Vector2i(200,80)));
+    //m_shapes.push_back(new Gate());
 
 
     setupRibbon();
+
+    BlockParser parser;
+    parser.readFile("..\\..\\Blocks\\AND.verilog");
 
 }
 
@@ -118,6 +140,18 @@ void MainWindow::setupRibbon()
 
       ui->ribbonTabWidget->addButton("Project", "Import", connectWebserviceButton);
 
+      //View
+      {
+          // Add 'Move tool' button
+          QToolButton *m_viewSimulateButton = new QToolButton;
+          m_viewSimulateButton->setText(tr("Play"));
+          m_viewSimulateButton->setToolTip(tr("Simulate Circuit"));
+          m_viewSimulateButton->setIcon(QIcon(":/icons/play.svg"));
+          m_viewSimulateButton->setEnabled(true);
+          ui->ribbonTabWidget->addButton("View", "Simulation", m_viewSimulateButton);
+          connect(m_viewSimulateButton , &QAbstractButton::pressed, this, &MainWindow::onViewSimulate);
+      }
+
       // Tools
       {
           // Add 'Move tool' button
@@ -152,7 +186,14 @@ void MainWindow::setupRibbon()
       }
 
 }
-
+void MainWindow::onViewSimulate()
+{
+    Physics::displayPhysical = !Physics::displayPhysical;
+    if(Physics::displayPhysical)
+        m_simulationTimer->start(m_simulationTimeMS);
+    else
+        m_simulationTimer->stop();
+}
 void MainWindow::onToolMoveButtonPressed()
 {
 
@@ -247,4 +288,9 @@ void MainWindow::checkKeyEvents()
         //m_connectToolButton->setCheckable(false);
         //m_moveToolButton->setCheckable(false);
     }
+}
+
+void MainWindow::onSimulateIteration()
+{
+    Gate::global_processLogic();
 }

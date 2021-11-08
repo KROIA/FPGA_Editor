@@ -18,6 +18,7 @@ INCLUDEPATH += $$incPath \
                $$incPath/graphics/shapes \
                $$incPath/core \
                $$incPath/core/tool \
+               $$incPath/blocks \
 
 SOURCES += \
     $$srcPath/main.cpp \
@@ -29,8 +30,12 @@ SOURCES += \
     $$srcPath/graphics/shapes/pin.cpp \
     $$srcPath/core/tool/tool.cpp \
     $$srcPath/core/AABB.cpp \
-    src/graphics/shapes/connection.cpp \
-    src/graphics/shapes/grid.cpp
+    $$srcPath/graphics/shapes/connection.cpp \
+    $$srcPath/graphics/shapes/grid.cpp \
+    $$srcPath/blocks/blockParser.cpp \
+    src/blocks/logicGate_AND.cpp \
+    src/blocks/logicGate_CONST.cpp \
+    src/core/physics.cpp
 
 HEADERS += \
     $$incPath/graphics/mainwindow.h \
@@ -41,11 +46,15 @@ HEADERS += \
     $$incPath/graphics/shapes/pin.h \
     $$incPath/core/tool/tool.h \
     $$incPath/core/AABB.h \
-    inc/core/classdef.h \
-    inc/core/debug.h \
-    inc/core/tool/toollistener.h \
-    inc/graphics/shapes/connection.h \
-    inc/graphics/shapes/grid.h
+    $$incPath/core/classdef.h \
+    $$incPath/core/debug.h \
+    $$incPath/core/tool/toollistener.h \
+    $$incPath/graphics/shapes/connection.h \
+    $$incPath/graphics/shapes/grid.h \
+    $$incPath/blocks/blockParser.h \
+    $$incPath/blocks/logicGate_AND.h \
+    $$incPath/core/physics.h \
+    $$incPath/blocks/logicGate_CONST.h
 
 FORMS += \
     mainwindow.ui

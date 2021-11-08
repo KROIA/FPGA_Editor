@@ -8,11 +8,13 @@
 class Gate  :   public Shape
 {
     public:
-        Gate();
-        Gate(Vector2i pos);
+        Gate(int inputs, int outputs);
+        Gate(Vector2i pos,int inputs, int outputs);
         ~Gate();
 
         virtual void draw(sf::RenderWindow *window, Vector2i drawPos = Vector2i(0,0));
+
+        static void global_processLogic();
 
     protected:
         // From ToolListener
@@ -25,9 +27,9 @@ class Gate  :   public Shape
 
 
         void setupPins(int inputs, int outputs);
+        virtual void processLogic();
 
-    private:
-        void setup();
+
 
         vector<Pin*> m_inputPins;
         vector<Pin*> m_outputPins;
@@ -39,6 +41,11 @@ class Gate  :   public Shape
 
         bool m_moving;
         Vector2i m_movingOldPos;
+
+    private:
+        void setup(int inputs, int outputs);
+        static vector<Gate *> m_globalGatelIst;
+
 
 };
 #endif // GATE_H

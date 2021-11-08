@@ -14,5 +14,6 @@
 		<file>icons/link.svg</file>
         <file>icons/move.svg</file>
 		<file>icons/disconnect.svg</file>
+		<file>icons/play.svg</file>
     </qresource>
 </RCC>

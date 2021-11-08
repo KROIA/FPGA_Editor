@@ -35,6 +35,8 @@ class Connection    : public Shape
         Color m_standardColor;
         Color m_selectedColor;
 
+        float m_voltage;
+
 
         Pin *m_startPin;
         Pin *m_endPin;

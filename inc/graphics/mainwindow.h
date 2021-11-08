@@ -8,10 +8,16 @@
 #include "grid.h"
 
 #include "gate.h"
+#include "logicGate_AND.h"
+#include "logicGate_CONST.h"
 #include "debug.h"
 
 #include <QMenu>
 #include "ribbon.h"
+
+#include "blockParser.h"
+#include "QTimer"
+
 
 using std::vector;
 
@@ -30,12 +36,16 @@ class MainWindow : public QMainWindow
 
 
     private slots:
+            void onViewSimulate();
+
             void onToolMoveButtonPressed();
             void onToolConnectButtonPressed();
             void onToolDisconnectButtonPressed();
 
             void resizeEvent(QResizeEvent* e);
             void checkKeyEvents();
+
+            void onSimulateIteration();
 
     private:
         //void resetToolButtonState();
@@ -52,6 +62,8 @@ class MainWindow : public QMainWindow
 
         Ui::MainWindow *ui;
 
+        QTimer *m_simulationTimer;
+        int m_simulationTimeMS;
 
         // Buttons
             // Tools

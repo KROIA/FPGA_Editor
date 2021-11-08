@@ -5,6 +5,7 @@
 #include "tool.h"
 #include "AABB.h"
 #include "toollistener.h"
+#include "physics.h"
 
 
 using std::vector;
