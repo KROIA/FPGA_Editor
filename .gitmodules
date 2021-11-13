@@ -4,3 +4,6 @@
 [submodule "extern/QT-Ribbon-Widget"]
 	path = extern/QT-Ribbon-Widget
 	url = https://github.com/KROIA/Qt-Ribbon-Widget
+[submodule "extern/SimpleVerilogParser"]
+	path = extern/SimpleVerilogParser
+	url = https://github.com/KROIA/SimpleVerilogParser
