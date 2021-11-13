@@ -48,9 +48,9 @@ void Connection::draw(sf::RenderWindow *window, Vector2i drawPos)
     Color drawColor = m_color;
     if(Physics::displayPhysical)
     {
-        if(m_startPin->type() == Pin::Type::output)
+        if(m_startPin->direction() == Pin::Direction::output)
             m_voltage = m_startPin->voltage();
-        else if(m_endPin->type() == Pin::Type::output)
+        else if(m_endPin->direction() == Pin::Direction::output)
             m_voltage = m_endPin->voltage();
         drawColor = Physics::coloredVoltage(m_voltage);
     }

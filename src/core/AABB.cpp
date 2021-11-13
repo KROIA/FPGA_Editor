@@ -98,6 +98,10 @@ Vector2i AABB::end() const
 {
     return m_end;
 }
+Vector2i AABB::middle() const
+{
+    return Vector2i((m_end.x+m_begin.x)/2,(m_end.y+m_begin.y)/2);
+}
 
 
 int AABB::width() const

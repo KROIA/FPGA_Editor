@@ -67,9 +67,9 @@ void Tool::setSelected(bool select)
         }
     }
 }
-Tool &Tool::getSelected()
+Tool *Tool::getSelected()
 {
-    return *m_selected;
+    return m_selected;
 }
 Tool::Type Tool::getSelectedType()
 {

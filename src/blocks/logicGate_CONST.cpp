@@ -9,6 +9,12 @@ LogicGate_CONST::LogicGate_CONST()
     m_enabled = false;
 
 }
+LogicGate_CONST::LogicGate_CONST(const LogicGate_CONST &other)
+    :   Gate(other)
+{
+    m_voltage = other.m_voltage;
+    m_enabled = other.m_enabled;
+}
 LogicGate_CONST::LogicGate_CONST(Vector2i pos)
     :   Gate(pos,0,1)
 {
@@ -21,6 +27,12 @@ LogicGate_CONST::~LogicGate_CONST()
 {
 
 }
+
+Gate *LogicGate_CONST::clone()
+{
+    return new LogicGate_CONST(*this);
+}
+
 void LogicGate_CONST::voltage(float voltage)
 {
     m_voltage = voltage;
@@ -35,9 +47,9 @@ void LogicGate_CONST::logicLevel(bool level)
 void LogicGate_CONST::processLogic()
 {
     if(m_enabled)
-        m_outputPins[0]->voltage(m_voltage);
+        outputVoltage(0,m_voltage);
     else
-        m_outputPins[0]->voltage(0);
+        outputVoltage(0,0);
 }
 
 

@@ -1,18 +1,37 @@
 #include "pin.h"
 
 Pin *Pin::m_tmpIsConnectingToPin = nullptr;
+sf::Font* Pin::m_font = nullptr;
 
 Color Pin::m_selectedColor    = Color(0,200,0);
 
 Pin::Pin()
 {
-    Pin(Type::input,0);
+    Pin(Direction::input,0);
 }
-Pin::Pin(Type type,int angle)
+Pin::Pin(const Pin &other)
 {
-    m_type  = type;
+    m_pinDimensions = other.m_pinDimensions;
+    m_angle = other.m_angle;
+    m_color = other.m_color;
+    m_defaultColor = other.m_defaultColor;
 
-    switch(m_type)
+    m_direction = other.m_direction;
+    m_connectionPoint = other.m_connectionPoint;
+    m_label = other.m_label;
+    m_voltage = other.m_voltage;
+
+    m_startConnecting = 0;
+    m_useGrid = false;
+
+    m_pinConnectionTypeBlacklist = other.m_pinConnectionTypeBlacklist;
+
+}
+Pin::Pin(Direction direction,int angle)
+{
+    m_direction  = direction;
+
+    switch(m_direction)
     {
         case output:
         {
@@ -30,19 +49,46 @@ Pin::Pin(Type type,int angle)
     m_useGrid = false;
     m_startConnecting = false;
     m_voltage = 0;
-    m_label = "Pin";
+
+    if(m_font == nullptr)
+    {
+        m_font = new sf::Font();
+        if(!m_font->loadFromFile("C:\\Windows\\Fonts\\arial.ttf"))
+        {
+            qDebug() << "ERROR: Pin::Pin(Type type,int angle) can't load Font";
+        }
+    }
+    m_label.setFont(*m_font);
+    m_label.setString("Pin");
+    m_label.scale(0.1,0.1);
+    m_label.setCharacterSize(80);
+    //m_label.setScale(100,100);
+    m_label.setFillColor(Color(20,20,20));
+    m_label.setStyle(sf::Text::Regular);
 }
 Pin::~Pin()
 {
-
+    vector<Pin*> tmp = m_connectedToList;
+    for(size_t i=0; i<tmp.size(); i++)
+    {
+        deleteConnection(tmp[i]);
+    }
 }
-void Pin::label(const string &label)
+void Pin::angle(int angle)
 {
-    m_label = label;
+    m_angle = angle%360;
 }
-const string &Pin::label() const
+int Pin::angle() const
 {
-    return m_label;
+    return m_angle;
+}
+void Pin::name(const string &label)
+{
+    m_label.setString(label);
+}
+string Pin::name() const
+{
+    return m_label.getString();
 }
 void Pin::voltage(float voltage)
 {
@@ -85,9 +131,9 @@ Vector2i Pin::connectionPoint()
     }
     return m_connectionPoint;
 }
-Pin::Type Pin::type() const
+Pin::Direction Pin::direction() const
 {
-    return m_type;
+    return m_direction;
 }
 void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
 {
@@ -99,31 +145,40 @@ void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
     if(!m_isVisible)
         return;
     drawPos += m_position;
+    Vector2i labelOffset(0,0);
     switch(m_angle)
     {
         case 0:
         {
             m_boundingBox.set(Vector2i(drawPos.x,drawPos.y-m_pinDimensions.y/2),
                               Vector2i(drawPos.x+m_pinDimensions.x,drawPos.y+m_pinDimensions.y/2));
+            labelOffset.x = m_boundingBox.width()/2;
             break;
         }
         case 90:
         {
             m_boundingBox.set(Vector2i(drawPos.x-m_pinDimensions.y/2,drawPos.y),
                               Vector2i(drawPos.x+m_pinDimensions.y/2,drawPos.y+m_pinDimensions.x));
+            labelOffset.y = m_boundingBox.height()/2;
             break;
         }
         case 180:
         {
             m_boundingBox.set(Vector2i(drawPos.x-m_pinDimensions.x,drawPos.y-m_pinDimensions.y/2),
                               Vector2i(drawPos.x,drawPos.y+m_pinDimensions.y/2));
+            labelOffset.x = -m_boundingBox.width()/2;
             break;
         }
         case 270:
         {
             m_boundingBox.set(Vector2i(drawPos.x-m_pinDimensions.y/2,drawPos.y-m_pinDimensions.x),
                               Vector2i(drawPos.x+m_pinDimensions.y/2,drawPos.y));
+            labelOffset.y = -m_boundingBox.height()/2;
             break;
+        }
+        default:
+        {
+            qDebug() << "strange angle: "<<m_angle;
         }
     }
 
@@ -133,11 +188,11 @@ void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
 
     if(Physics::displayPhysical)
     {
-        if(m_type != Type::output) // Update the voltage
+        if(m_direction != Direction::output) // Update the voltage
         {
             for(size_t i=0; i<m_connectedToList.size(); i++)
             {
-                if(m_connectedToList[i]->m_type == Type::output)
+                if(m_connectedToList[i]->m_direction == Direction::output)
                 {
                     m_voltage = m_connectedToList[i]->m_voltage;
                 }
@@ -150,7 +205,25 @@ void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
 
     line.setPosition((Vector2f(drawPos)));
 
+    sf::FloatRect labelBounds = m_label.getGlobalBounds();
+    m_label.setOrigin(labelBounds.width/(2*m_label.getScale().x),
+                     (labelBounds.height-labelBounds.height/10)/m_label.getScale().y);
+    //m_label.setOrigin(labelBounds.width/(m_label.getScale().x*2),0);
+    m_label.setPosition((Vector2f(drawPos+labelOffset)));
+
+    /*Color color(0,255,0);
+    sf::Vertex line1[2] =
+    {
+        sf::Vertex(sf::Vector2f(drawPos),color),
+        sf::Vertex(sf::Vector2f(drawPos)+sf::Vector2f(labelBounds.width,labelBounds.height),color),
+
+    };*/
+
+
+
     window->draw(line);
+    window->draw(m_label);
+    //window->draw(line1,2,sf::Lines);
 }
 void Pin::addToBlacklist(Pin *pin)
 {
@@ -187,39 +260,39 @@ void Pin::removeFromBlacklist(const vector<Pin *> &pinList)
         removeFromBlacklist(pinList[i]);
 }
 
-void Pin::addToBlacklist(Type type)
+void Pin::addToBlacklist(Direction direction)
 {
     for(size_t i=0; i<m_pinConnectionTypeBlacklist.size(); i++)
     {
-        if(m_pinConnectionTypeBlacklist[i] == type)
+        if(m_pinConnectionTypeBlacklist[i] == direction)
         {
-            qDebug() << "WARNING: Pin::addToBlacklist(Type type): This type is already in the blacklist";
+            qDebug() << "WARNING: Pin::addToBlacklist(Direction direction): This direction is already in the blacklist";
             return;
         }
     }
-    m_pinConnectionTypeBlacklist.push_back(type);
+    m_pinConnectionTypeBlacklist.push_back(direction);
 }
-void Pin::addToBlacklist(const vector<Type > typeList)
+void Pin::addToBlacklist(const vector<Direction > directionList)
 {
-    for(size_t i=0; i<typeList.size(); i++)
-        addToBlacklist(typeList[i]);
+    for(size_t i=0; i<directionList.size(); i++)
+        addToBlacklist(directionList[i]);
 }
-void Pin::removeFromBlacklist(Type type)
+void Pin::removeFromBlacklist(Direction direction)
 {
     for(size_t i=0; i<m_pinConnectionTypeBlacklist.size(); i++)
     {
-        if(m_pinConnectionTypeBlacklist[i] == type)
+        if(m_pinConnectionTypeBlacklist[i] == direction)
         {
             m_pinConnectionTypeBlacklist.erase(m_pinConnectionTypeBlacklist.begin() + i);
             return;
         }
     }
-    qDebug() << "WARNING: Pin::removeFromBlacklist(Type type): Type is not blacklisted";
+    qDebug() << "WARNING: Pin::removeFromBlacklist(Direction direction): Direction is not blacklisted";
 }
-void Pin::removeFromBlacklist(const vector<Type > typeList)
+void Pin::removeFromBlacklist(const vector<Direction > directionList)
 {
-    for(size_t i=0; i<typeList.size(); i++)
-        removeFromBlacklist(typeList[i]);
+    for(size_t i=0; i<directionList.size(); i++)
+        removeFromBlacklist(directionList[i]);
 }
 
 void Pin::onEventUpdate(sf::RenderWindow *window)
@@ -234,9 +307,9 @@ void Pin::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
 {
     if(Tool::getSelectedType() == Tool::Type::signalConnector)
     {
-        if(!Tool::getSelected().isUsed())
+        if(!Tool::getSelected()->isUsed())
         {
-            Tool::getSelected().isUsed(true);
+            Tool::getSelected()->isUsed(true);
             Tool::startListen(this);
             m_startConnecting = true;
             m_tmpIsConnectingToPin = this;
@@ -250,7 +323,7 @@ void Pin::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
             if(m_tmpIsConnectingToPin != this &&
                m_tmpIsConnectingToPin != nullptr)
             {
-                Tool::getSelected().isUsed(false);
+                Tool::getSelected()->isUsed(false);
                 Tool::endListen(this);
                 createConnection(m_tmpIsConnectingToPin);
                 m_tmpIsConnectingToPin->m_color = m_tmpIsConnectingToPin->m_defaultColor;
@@ -262,7 +335,7 @@ void Pin::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
     {
         if(m_connectedToList.size() != 0)
         {
-            if(!Tool::getSelected().isUsed())
+            if(!Tool::getSelected()->isUsed())
             {
 
 
@@ -272,7 +345,7 @@ void Pin::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
                 }
                 else
                 {
-                    Tool::getSelected().isUsed(true);
+                    Tool::getSelected()->isUsed(true);
                     Tool::startListen(this);
                     m_color = m_selectedColor;
                     m_tmpIsConnectingToPin = this;
@@ -289,7 +362,7 @@ void Pin::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
                     deleteConnection(m_tmpIsConnectingToPin);
                     m_tmpIsConnectingToPin->setConnectionColorToDefault();
                     m_tmpIsConnectingToPin = nullptr;
-                    Tool::getSelected().isUsed(false);
+                    Tool::getSelected()->isUsed(false);
                     Tool::endListen(this);
                 }
 
@@ -321,7 +394,7 @@ void Pin::createConnection(Pin *other)
 
     for(size_t i=0; i<m_pinConnectionTypeBlacklist.size(); i++)
     {
-        if(m_pinConnectionTypeBlacklist[i] == other->m_type)
+        if(m_pinConnectionTypeBlacklist[i] == other->m_direction)
         {
             qDebug() << "ERROR: Pin::createConnection(Pin *other): This connection is not allowed";
             return;

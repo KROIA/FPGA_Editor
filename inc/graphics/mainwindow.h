@@ -8,15 +8,16 @@
 #include "grid.h"
 
 #include "gate.h"
-#include "logicGate_AND.h"
+#include "logicGate.h"
 #include "logicGate_CONST.h"
+#include "logicGateImported.h"
 #include "debug.h"
 
 #include <QMenu>
 #include "ribbon.h"
 
-#include "blockParser.h"
 #include "QTimer"
+
 
 
 using std::vector;
@@ -36,29 +37,63 @@ class MainWindow : public QMainWindow
 
 
     private slots:
+            void onFrameUpdate();
             void onViewSimulate();
 
             void onToolMoveButtonPressed();
             void onToolConnectButtonPressed();
             void onToolDisconnectButtonPressed();
+            void onToolDeleteButtonPressed();
+
+            void onToolAddGateAND();
+            void onToolAddGateOR();
+            void onToolAddGateXOR();
+            void onToolAddGateNAND();
+            void onToolAddGateNOR();
+            void onToolAddGateXNOR();
+            void onToolAddGateNOT();
+            void onToolAddConst();
 
             void resizeEvent(QResizeEvent* e);
             void checkKeyEvents();
 
             void onSimulateIteration();
 
+            // From Shapes
+            void onDeleteRequest(Shape *shape);
+
+            // From Gates
+            void onPlaced(Gate *gate);
+            void onStartMoving(Gate *gate);
+            void onClicked(Gate *gate);
+            void onAddCopyOf(Gate *gate);
+
     private:
-        //void resetToolButtonState();
+
+
+        void addGate(Gate *gate);
+        void addLogicGate(LogicGate::Logic logic);
+        QToolButton* addRibbonButton(const string &tab,
+                                     const string &group,
+                                     const string &name,
+                                     const string &logo,
+                                     const string &toolTip,
+                                     void (MainWindow::*slot)(void));
 
         void setupRibbon();
 
         Grid *m_grid;
-        vector<Shape*>  m_shapes;
+        vector<Gate*>  m_shapes;
+        vector<Shape*>  m_shapesDeleteLater;
+        vector<Gate*>   m_shapesAddLater;
+        Gate*   m_makeCopyOf;
+        QTimer  frameUpdateTimer;
         Canvas* SFMLView;
 
         Tool *m_tool_move;
         Tool *m_tool_connect;
         Tool *m_tool_disconnect;
+        Tool *m_tool_moduleRemover;
 
         Ui::MainWindow *ui;
 
@@ -70,5 +105,8 @@ class MainWindow : public QMainWindow
         QToolButton *m_moveToolButton;
         QToolButton *m_connectToolButton;
         QToolButton *m_disconnectToolButton;
+        QToolButton *m_deleteToolButton;
+        void unselectAllButtons();
+
 };
 #endif // MAINWINDOW_H

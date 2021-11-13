@@ -59,30 +59,13 @@ void Canvas::setPosition(QPoint &pos)
     move(pos);
 }
 void Canvas::setSize(QSize &size)
-{
-   /* sf::View view = this->getView();
-    Vector2i pos(size.width(),size.height());
-    QSize oldSize = geometry().size();
-    sf::FloatRect oldViewArea = view.getViewport();*/
-
-    float aspectRatio = (float)this->getSize().x / (float)this->getSize().y;
-    //this->getView().getSize()
-
-
-    /*sf::FloatRect visibleArea(view.getViewport().getPosition().x, view.getViewport().getPosition().y,
-                                  size.width() * oldViewArea.width / oldSize.width(),
-                                  size.height()* oldViewArea.height / oldSize.height());
-*/
-//  sf::FloatRect visibleArea(view.getViewport().getPosition().x, view.getViewport().getPosition().y,
- //                             this->mapPixelToCoords(pos).x,this->mapPixelToCoords(pos).y);
-
-  //  view.setViewport(visibleArea);
+{ 
+    float aspectRatio = (float)size.width() / (float)size.height();
 
     resize(size);
     sf::View view = this->getView();
     view.setSize((float)this->getSize().y * aspectRatio * m_zoomValue, this->getSize().y * m_zoomValue);
 
-    //this->setView(sf::View(visibleArea));
     this->setView(view);
 }
 Vector2i Canvas::getMousePosition()

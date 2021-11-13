@@ -1,19 +1,29 @@
 <RCC>
     <qresource prefix="/">
-        <file>icons/briefcase_1.svg</file>
-        <file>icons/engineering_1.svg</file>
-        <file>icons/information_1.svg</file>
-        <file>icons/monitor_1.svg</file>
-        <file>icons/add_database_2.svg</file>
-        <file>icons/add_folder_2.svg</file>
-        <file>icons/add_link_2.svg</file>
-        <file>icons/create_new_2.svg</file>
-        <file>icons/file_2.svg</file>
-        <file>icons/live_folder_2.svg</file>
-        <file>icons/save_2.svg</file>
-		<file>icons/link.svg</file>
-        <file>icons/move.svg</file>
-		<file>icons/disconnect.svg</file>
-		<file>icons/play.svg</file>
+        <file>Resources/icons/briefcase_1.svg</file>
+        <file>Resources/icons/engineering_1.svg</file>
+        <file>Resources/icons/information_1.svg</file>
+        <file>Resources/icons/monitor_1.svg</file>
+        <file>Resources/icons/add_database_2.svg</file>
+        <file>Resources/icons/add_folder_2.svg</file>
+        <file>Resources/icons/add_link_2.svg</file>
+        <file>Resources/icons/create_new_2.svg</file>
+        <file>Resources/icons/file_2.svg</file>
+        <file>Resources/icons/live_folder_2.svg</file>
+        <file>Resources/icons/save_2.svg</file>
+		<file>Resources/icons/link.svg</file>
+        <file>Resources/icons/move.svg</file>
+		<file>Resources/icons/disconnect.svg</file>
+		<file>Resources/icons/play.svg</file>
+		
+		<file>Resources/icons/gates/gate_AND.svg</file>
+		<file>Resources/icons/gates/gate_OR.svg</file>
+		<file>Resources/icons/gates/gate_XOR.svg</file>
+		<file>Resources/icons/gates/gate_NAND.svg</file>
+		<file>Resources/icons/gates/gate_NOR.svg</file>
+		<file>Resources/icons/gates/gate_XNOR.svg</file>
+		<file>Resources/icons/gates/gate_NOT.svg</file>
+		
+		<file>Resources/modules/gate_AND.v</file>
     </qresource>
 </RCC>

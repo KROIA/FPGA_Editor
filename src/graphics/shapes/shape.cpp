@@ -28,6 +28,8 @@ Shape::Shape(const Shape &other)
     m_position = other.m_position;
     m_boundingBox = other.m_boundingBox;
     m_isVisible = other.m_isVisible;
+    m_useGrid = other.m_useGrid;
+    global_shapeList.push_back(this);
 }
 Shape::~Shape()
 {

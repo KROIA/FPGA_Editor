@@ -21,6 +21,7 @@ class AABB{
 
         Vector2i begin() const;
         Vector2i end() const;
+        Vector2i middle() const;
 
         int width() const;
         int height() const;
@@ -28,6 +29,8 @@ class AABB{
         bool overlaps(const AABB &other);
         bool contains(const AABB &other);
         bool contains(const Vector2i point);
+
+
 
         void draw(sf::RenderWindow *window, Color color = Color(100,100,100));
 

@@ -17,11 +17,11 @@ QSFMLCanvas::QSFMLCanvas(QWidget* Parent, const QPoint& Position, const QSize& S
     move(Position);
     resize(Size);
     // Setup the timer
-    myTimer.setInterval(FrameTime);
+    //myTimer.setInterval(FrameTime);
 }
 QSFMLCanvas::~QSFMLCanvas()
 {
-    myTimer.stop();
+    //myTimer.stop();
    // RenderWindow::close();
 }
 void QSFMLCanvas::showEvent(QShowEvent*)
@@ -38,8 +38,8 @@ void QSFMLCanvas::showEvent(QShowEvent*)
         // Let the derived class do its specific stuff
         OnInit();
         // Setup the timer to trigger a refresh at specified framerate
-        connect(&myTimer, SIGNAL(timeout()), this, SLOT(repaint()));
-        myTimer.start();
+        //connect(&myTimer, SIGNAL(timeout()), this, SLOT(repaint()));
+       // myTimer.start();
         myInitialized = true;
     }
 }

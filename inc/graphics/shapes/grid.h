@@ -12,6 +12,8 @@ class Grid  : public Shape
         virtual void draw(sf::RenderWindow *window, Vector2i drawPos = Vector2i(0,0));
 
 
+
+
     private:
 
         virtual void onEventUpdate(sf::RenderWindow *window);

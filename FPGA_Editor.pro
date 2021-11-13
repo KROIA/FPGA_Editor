@@ -9,6 +9,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 include(extern/SFML.pri)
 include(extern/QT-Ribbon-Widget/QT-Ribbon-Widget.pri)
+include(extern/SimpleVerilogParser/SimpleVerilogParser.pri)
 
 srcPath = src
 incPath = inc
@@ -32,10 +33,11 @@ SOURCES += \
     $$srcPath/core/AABB.cpp \
     $$srcPath/graphics/shapes/connection.cpp \
     $$srcPath/graphics/shapes/grid.cpp \
-    $$srcPath/blocks/blockParser.cpp \
-    src/blocks/logicGate_AND.cpp \
-    src/blocks/logicGate_CONST.cpp \
-    src/core/physics.cpp
+    $$srcPath/blocks/logicGate.cpp \
+    $$srcPath/blocks/logicGate_CONST.cpp \
+    $$srcPath/core/physics.cpp \
+    src/blocks/logicGateImported.cpp \
+    src/core/projectConfig.cpp
 
 HEADERS += \
     $$incPath/graphics/mainwindow.h \
@@ -51,10 +53,11 @@ HEADERS += \
     $$incPath/core/tool/toollistener.h \
     $$incPath/graphics/shapes/connection.h \
     $$incPath/graphics/shapes/grid.h \
-    $$incPath/blocks/blockParser.h \
-    $$incPath/blocks/logicGate_AND.h \
+    $$incPath/blocks/logicGate.h \
     $$incPath/core/physics.h \
-    $$incPath/blocks/logicGate_CONST.h
+    $$incPath/blocks/logicGate_CONST.h \
+    inc/blocks/logicGateImported.h \
+    inc/core/projectConfig.h
 
 FORMS += \
     mainwindow.ui

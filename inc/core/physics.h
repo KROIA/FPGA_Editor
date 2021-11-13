@@ -27,7 +27,8 @@ namespace Physics{
     float mapF(float x, float in_min, float in_max, float out_min, float out_max);
     Color coloredVoltage(float voltage);
     std::string voltageString(float voltage, int precision, bool leadingUnit = true);
-
+    bool voltageToLogicLevel(float voltage);
+    float logicLevelToVoltage(bool logicLevel);
 }
 
 #endif // PHYSICS_H

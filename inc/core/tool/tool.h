@@ -15,6 +15,7 @@ class Tool
             moveModifier,
             signalConnector,
             signalRemover,
+            moduleRemover
         };
         Tool();
         Tool(Type type);
@@ -26,7 +27,7 @@ class Tool
         void type(Type type);
 
         void setSelected(bool select);
-        static Tool &getSelected();
+        static Tool *getSelected();
         static Type getSelectedType();
         static void unselect();
 

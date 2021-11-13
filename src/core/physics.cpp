@@ -45,5 +45,19 @@ namespace Physics{
             str+="V";
         return str;
     }
+    bool voltageToLogicLevel(float voltage)
+    {
+        if(voltage >= Electrical::voltage_logic_1_threshold)
+           return 1;
+        else if(voltage <= Electrical::voltage_logic_0_threshold)
+           return false;
+
+        // Not defined, will return 0
+        return 0;
+    }
+    float logicLevelToVoltage(bool logicLevel)
+    {
+        return Electrical::voltage_max * logicLevel;
+    }
 
 }

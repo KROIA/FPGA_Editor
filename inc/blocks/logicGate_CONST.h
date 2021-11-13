@@ -6,9 +6,13 @@
 class LogicGate_CONST     :   public Gate
 {
     public:
+
         LogicGate_CONST();
+        LogicGate_CONST(const LogicGate_CONST &other);
         LogicGate_CONST(Vector2i pos);
         ~LogicGate_CONST();
+
+        virtual Gate *clone();
 
         void voltage(float voltage);
         void logicLevel(bool level);

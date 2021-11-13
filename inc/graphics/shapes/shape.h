@@ -1,11 +1,13 @@
 #ifndef SHAPE_H
 #define SHAPE_H
 #include <SFML/Graphics.hpp>
-#include "debug.h"
+
 #include "tool.h"
 #include "AABB.h"
 #include "toollistener.h"
 #include "physics.h"
+#include <QObject>
+
 
 
 using std::vector;
@@ -13,8 +15,9 @@ using sf::Vector2f;
 using sf::Vector2i;
 using sf::Color;
 
-class Shape :   protected ToolListener
+class Shape :   public QObject, public ToolListener
 {
+        Q_OBJECT
     public:
         Shape();
         Shape(Shape *parent);
@@ -42,6 +45,9 @@ class Shape :   protected ToolListener
                                         Tool *selectedTool*/);
         static void global_draw(sf::RenderWindow *window);
         static void global_drawDebug(sf::RenderWindow *window);
+
+    signals:
+        void deleteRequest(Shape *shape);
 
     protected:
         // From ToolListener

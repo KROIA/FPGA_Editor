@@ -10,44 +10,24 @@ MainWindow::MainWindow(QWidget *parent)
     m_simulationTimer = new QTimer(this);
     connect(m_simulationTimer,&QTimer::timeout,this,&MainWindow::onSimulateIteration);
     m_simulationTimeMS = 100;
+    m_makeCopyOf = nullptr;
 
-   /* QFrame* MainFrame = new QFrame(this);
-    MainFrame->setWindowTitle("Qt SFML");
-    MainFrame->resize(400, 400);
-    MainFrame->show();*/
     // Create a SFML view inside the main frame
-    SFMLView = new Canvas(this, QPoint(20, 150), QSize(500, 250)/*,&m_shapes*/);
+    SFMLView = new Canvas(this, QPoint(20, 150), QSize(500, 250));
+    connect(&frameUpdateTimer,&QTimer::timeout,this,&MainWindow::onFrameUpdate);
     connect(SFMLView,&Canvas::checkKeyEvents,this,&MainWindow::checkKeyEvents);
     SFMLView->show();
+    frameUpdateTimer.start(20);
 
     m_tool_move = new Tool(Tool::Type::moveModifier);
     m_tool_connect = new Tool(Tool::Type::signalConnector);
     m_tool_disconnect = new Tool(Tool::Type::signalRemover);
+    m_tool_moduleRemover = new Tool(Tool::Type::moduleRemover);
 
     m_grid = new Grid();
 
-    LogicGate_CONST *cGate1 = new LogicGate_CONST(Vector2i(100,80));
-    cGate1->voltage(5);
-    LogicGate_CONST *cGate2 = new LogicGate_CONST(Vector2i(100,120));
-    cGate2->voltage(5);
-    LogicGate_CONST *cGate3 = new LogicGate_CONST(Vector2i(100,160));
-    cGate3->voltage(5);
-
-    m_shapes.push_back(cGate1);
-    m_shapes.push_back(cGate2);
-    m_shapes.push_back(cGate3);
-    m_shapes.push_back(new LogicGate_AND(Vector2i(200,80),2));
-    m_shapes.push_back(new LogicGate_AND(Vector2i(300,80),2));
-    m_shapes.push_back(new LogicGate_AND(Vector2i(100,80),2));
-    m_shapes.push_back(new LogicGate_AND(Vector2i(400,80),3));
-    //m_shapes.push_back(new Gate(Vector2i(200,80)));
-    //m_shapes.push_back(new Gate());
-
-
     setupRibbon();
-
-    BlockParser parser;
-    parser.readFile("..\\..\\Blocks\\AND.verilog");
+    resizeEvent(nullptr);
 
 }
 
@@ -57,32 +37,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-/*void MainWindow::onToolMoveButtonAction(QAction *action)
-{
-    if(action->Trigger)
-    {
-        qDebug() << "button pressed";
-    }
-    qDebug() << "button pressed";
 
-}*/
-/*void MainWindow::resetToolButtonState()
-{
-   // m_moveToolButton->setDown(false);
-   // m_connectToolButton->setDown(false);
-}*/
 void MainWindow::setupRibbon()
 {
     // Hide ribbon dock title bar
       ui->ribbonDockWidget->setTitleBarWidget(new QWidget());
 
       // Add tabs to ribbon
-      ui->ribbonTabWidget->addTab(QIcon(":/icons/briefcase_1.svg"), "Project");
-      ui->ribbonTabWidget->addTab(QIcon(":/icons/monitor_1.svg"), "View");
-      ui->ribbonTabWidget->addTab(QIcon(":/icons/engineering_1.svg"), "Tools");
-      ui->ribbonTabWidget->addTab(QIcon(":/icons/information_1.svg"), "Help");
+      ui->ribbonTabWidget->addTab(QIcon(":/Resources/icons/briefcase_1.svg"), "Project");
+      ui->ribbonTabWidget->addTab(QIcon(":/Resources/icons/monitor_1.svg"), "View");
+      ui->ribbonTabWidget->addTab(QIcon(":/Resources/icons/engineering_1.svg"), "Edit");
+      ui->ribbonTabWidget->addTab(QIcon(":/Resources/icons/information_1.svg"), "Help");
 
-      // Add 'Open project' button
+      /*// Add 'Open project' button
       QToolButton *openProjectButton = new QToolButton;
       openProjectButton->setText(tr("Open"));
       openProjectButton->setToolTip(tr("Open existing project"));
@@ -139,53 +106,168 @@ void MainWindow::setupRibbon()
       connectWebserviceButton->setIcon(QIcon(":/icons/add_link_2.svg"));
 
       ui->ribbonTabWidget->addButton("Project", "Import", connectWebserviceButton);
+      */
 
       //View
       {
           // Add 'Move tool' button
-          QToolButton *m_viewSimulateButton = new QToolButton;
+        /*  QToolButton *m_viewSimulateButton = new QToolButton;
           m_viewSimulateButton->setText(tr("Play"));
           m_viewSimulateButton->setToolTip(tr("Simulate Circuit"));
           m_viewSimulateButton->setIcon(QIcon(":/icons/play.svg"));
           m_viewSimulateButton->setEnabled(true);
           ui->ribbonTabWidget->addButton("View", "Simulation", m_viewSimulateButton);
-          connect(m_viewSimulateButton , &QAbstractButton::pressed, this, &MainWindow::onViewSimulate);
+          connect(m_viewSimulateButton , &QAbstractButton::pressed, this, &MainWindow::onViewSimulate);*/
+          m_moveToolButton = addRibbonButton("View","Simulation","Play","play.svg",
+                                             "Simulate circuit",&MainWindow::onViewSimulate);
       }
 
-      // Tools
+      // Edit
       {
           // Add 'Move tool' button
-          m_moveToolButton = new QToolButton;
+        /*  m_moveToolButton = new QToolButton;
           m_moveToolButton->setText(tr("Move"));
           m_moveToolButton->setToolTip(tr("Move Components"));
           m_moveToolButton->setIcon(QIcon(":/icons/move.svg"));
           m_moveToolButton->setEnabled(true);
-          ui->ribbonTabWidget->addButton("Tools", "Component", m_moveToolButton);
-          connect(m_moveToolButton , &QAbstractButton::pressed, this, &MainWindow::onToolMoveButtonPressed);
+          ui->ribbonTabWidget->addButton("Edit", "Component", m_moveToolButton);
+          connect(m_moveToolButton , &QAbstractButton::pressed, this, &MainWindow::onToolMoveButtonPressed);*/
+          m_moveToolButton = addRibbonButton("Edit","Component","Move","move.svg",
+                                             "Move components",&MainWindow::onToolMoveButtonPressed);
 
           // Add 'Connect tool' button
-          m_connectToolButton = new QToolButton;
+         /* m_connectToolButton = new QToolButton;
           m_connectToolButton->setText(tr("Connect"));
           m_connectToolButton->setToolTip(tr("Connect Components"));
           m_connectToolButton->setIcon(QIcon(":/icons/link.svg"));
           m_connectToolButton->setEnabled(true);
         //  m_connectToolButton->setCheckable(true);
-          ui->ribbonTabWidget->addButton("Tools", "Component", m_connectToolButton);
-          connect(m_connectToolButton , &QAbstractButton::pressed, this, &MainWindow::onToolConnectButtonPressed);
+          ui->ribbonTabWidget->addButton("Edit", "Component", m_connectToolButton);
+          connect(m_connectToolButton , &QAbstractButton::pressed, this, &MainWindow::onToolConnectButtonPressed);*/
+          m_connectToolButton = addRibbonButton("Edit","Component","Connect","link.svg",
+                                                "Connect components",&MainWindow::onToolConnectButtonPressed);
 
           // Add 'Disconnect tool' button
-          m_disconnectToolButton = new QToolButton;
+         /* m_disconnectToolButton = new QToolButton;
           m_disconnectToolButton->setText(tr("Disconnect"));
           m_disconnectToolButton->setToolTip(tr("Disconnect Components"));
           m_disconnectToolButton->setIcon(QIcon(":/icons/disconnect.svg"));
           m_disconnectToolButton->setEnabled(true);
         //  m_disconnectToolButton->setCheckable(true);
-          ui->ribbonTabWidget->addButton("Tools", "Component", m_disconnectToolButton);
-          connect(m_disconnectToolButton , &QAbstractButton::pressed, this, &MainWindow::onToolDisconnectButtonPressed);
+          ui->ribbonTabWidget->addButton("Edit", "Component", m_disconnectToolButton);*/
+          //connect(m_disconnectToolButton , &QAbstractButton::pressed, this, &MainWindow::onToolDisconnectButtonPressed);
+          m_disconnectToolButton = addRibbonButton("Edit","Component","Disconnect","disconnect.svg",
+                                                   "Disconnect components",&MainWindow::onToolDisconnectButtonPressed);
+
+          m_deleteToolButton = addRibbonButton("Edit","Component","Delete","delete.svg",
+                                                   "Delete components",&MainWindow::onToolDeleteButtonPressed);
+
+
+      }
+      // Add Standard Gates
+      {
+          string tab = "Edit";
+          string group = "Add gate";
+          string toolTipBegin = "Adds a ";
+          string toolTipEnd = " gate";
+          string svgBegin = "gates/gate_";
+          string svgEnd = ".svg";
+          string gateType;
+
+          gateType = LogicGate::logicToString(LogicGate::Logic::AND);
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddGateAND);
+          gateType = LogicGate::logicToString(LogicGate::Logic::OR);
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddGateOR);
+          gateType = LogicGate::logicToString(LogicGate::Logic::XOR);
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddGateXOR);
+          gateType = LogicGate::logicToString(LogicGate::Logic::NAND);
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddGateNAND);
+          gateType = LogicGate::logicToString(LogicGate::Logic::NOR);
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddGateNOR);
+          gateType = LogicGate::logicToString(LogicGate::Logic::XNOR);
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddGateXNOR);
+          gateType = LogicGate::logicToString(LogicGate::Logic::NOT);
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddGateNOT);
+          gateType = "CONST";
+          addRibbonButton(tab,group,gateType,svgBegin+ gateType+svgEnd,
+                          toolTipBegin+gateType+toolTipEnd,&MainWindow::onToolAddConst);
+
 
       }
 
 }
+QToolButton* MainWindow::addRibbonButton(const string &tab,
+                             const string &group,
+                             const string &name,
+                             const string &logo,
+                             const string &toolTip,
+                             void (MainWindow::*slot)(void))
+{
+    QToolButton *button = new QToolButton;
+    button->setText(tr(name.c_str()));
+    button->setToolTip(tr(toolTip.c_str()));
+    button->setIcon(QIcon(QString::fromStdString(":Resources/icons/"+logo)));
+    button->setEnabled(true);
+    ui->ribbonTabWidget->addButton(QString::fromStdString(tab), QString::fromStdString(group), button);
+    connect(button , &QAbstractButton::pressed, this, slot);
+    //button->setAutoRaise(false);
+
+    return button;
+}
+
+void MainWindow::onFrameUpdate()
+{
+    for(size_t i=0; i<m_shapesDeleteLater.size(); i++)
+    {
+        for(size_t a=0; a<m_shapes.size(); a++)
+        {
+            if(m_shapes[a] == m_shapesDeleteLater[i])
+            {
+                delete m_shapes[a];
+                m_shapes.erase(m_shapes.begin() + a);
+                a--;
+                goto nextDel;
+            }
+        }
+        nextDel:;
+    }
+    m_shapesDeleteLater.clear();
+
+    if(m_makeCopyOf != nullptr)
+    {
+        Gate *newGate = m_makeCopyOf->clone();
+        addGate(newGate);
+        m_tool_move->setSelected(true);
+        Tool::getSelected()->isUsed(true);
+        newGate->snapToMouse(true);
+        unselectAllButtons();
+        m_moveToolButton->setStyleSheet("background-color: #cadeea");
+
+        m_makeCopyOf = nullptr;
+    }
+
+
+    for(size_t i=0; i<m_shapesAddLater.size(); i++)
+    {
+        m_shapes.push_back(m_shapesAddLater[i]);
+        connect(m_shapesAddLater[i],&Gate::placed,this,&MainWindow::onPlaced);
+        connect(m_shapesAddLater[i],&Gate::startsMoving,this,&MainWindow::onStartMoving);
+        connect(m_shapesAddLater[i],&Gate::clicked,this,&MainWindow::onClicked);
+        connect(m_shapesAddLater[i],&Gate::addCopyOf,this,&MainWindow::onAddCopyOf);
+        connect(m_shapesAddLater[i],&Shape::deleteRequest,this,&MainWindow::onDeleteRequest);
+    }
+    m_shapesAddLater.clear();
+    SFMLView->repaint();
+}
+
+
 void MainWindow::onViewSimulate()
 {
     Physics::displayPhysical = !Physics::displayPhysical;
@@ -194,67 +276,123 @@ void MainWindow::onViewSimulate()
     else
         m_simulationTimer->stop();
 }
+
+void MainWindow::unselectAllButtons()
+{
+    m_moveToolButton->setStyleSheet("outline:none;");
+    m_connectToolButton->setStyleSheet("outline:none;");
+    m_disconnectToolButton->setStyleSheet("outline:none;");
+    m_deleteToolButton->setStyleSheet("outline:none;");
+}
 void MainWindow::onToolMoveButtonPressed()
 {
-
-    qDebug() << "onToolMoveButtonPressed";
-    //resetToolButtonState();
     if(Tool::getSelectedType() == Tool::Type::moveModifier)
     {
-       // resetToolButtonState();
         Tool::unselect();
-       // m_moveToolButton->setDown(false);
-       // m_moveToolButton->setCheckable(false);
+        m_moveToolButton->setStyleSheet("outline:none;");
     }
     else
     {
-      //  m_connectToolButton->setDown(false);
+        unselectAllButtons();
+        m_moveToolButton->setStyleSheet("background-color: #cadeea");
         m_tool_move->setSelected(true);
-       // m_moveToolButton->setCheckable(true);
-       // m_moveToolButton->setDown(true);
     }
-
 }
 void MainWindow::onToolConnectButtonPressed()
 {
-    qDebug() << "onToolConnectButtonPressed";
-    //resetToolButtonState();
     if(Tool::getSelectedType() == Tool::Type::signalConnector)
     {
-       // resetToolButtonState();
         Tool::unselect();
-       // m_connectToolButton->setDown(false);
-       // m_connectToolButton->setCheckable(false);
+        m_connectToolButton->setStyleSheet("outline:none;");
     }
     else
     {
-       // m_moveToolButton->setDown(false);
+        unselectAllButtons();
+        m_connectToolButton->setStyleSheet("background-color: #cadeea");
         m_tool_connect->setSelected(true);
-        //m_connectToolButton->setCheckable(true);
-       //m_connectToolButton->setDown(true);
     }
 }
 void MainWindow::onToolDisconnectButtonPressed()
 {
-    //resetToolButtonState();
     if(Tool::getSelectedType() == Tool::Type::signalRemover)
     {
-        //resetToolButtonState();
         Tool::unselect();
+        m_disconnectToolButton->setStyleSheet("outline:none;");
     }
     else
     {
-
+        unselectAllButtons();
+        m_disconnectToolButton->setStyleSheet("background-color: #cadeea");
         m_tool_disconnect->setSelected(true);
-
     }
 }
+void MainWindow::onToolDeleteButtonPressed()
+{
+    if(Tool::getSelectedType() == Tool::Type::moduleRemover)
+    {
+        Tool::unselect();
+        m_deleteToolButton->setStyleSheet("outline:none;");
+    }
+    else
+    {
+        unselectAllButtons();
+        m_deleteToolButton->setStyleSheet("background-color: #cadeea");
+        m_tool_moduleRemover->setSelected(true);
+    }
+}
+void MainWindow::onToolAddGateAND()
+{
+    addLogicGate(LogicGate::Logic::AND);
+}
+void MainWindow::onToolAddGateOR()
+{
+    addLogicGate(LogicGate::Logic::OR);
+}
+void MainWindow::onToolAddGateXOR()
+{
+    addLogicGate(LogicGate::Logic::XOR);
+}
+void MainWindow::onToolAddGateNAND()
+{
+    addLogicGate(LogicGate::Logic::NAND);
+}
+void MainWindow::onToolAddGateNOR()
+{
+    addLogicGate(LogicGate::Logic::NOR);
+}
+void MainWindow::onToolAddGateXNOR()
+{
+    addLogicGate(LogicGate::Logic::XNOR);
+}
+void MainWindow::onToolAddGateNOT()
+{
+    addLogicGate(LogicGate::Logic::NOT);
+}
+void MainWindow::onToolAddConst()
+{
+    if(Tool::getSelected() != nullptr && Tool::getSelected()->isUsed())
+    {
+        qDebug() << "Tool is in usage";
+        return;
+    }
+    LogicGate_CONST *gConst = new LogicGate_CONST(Vector2i(100,80));
+    gConst->voltage(Physics::logicLevelToVoltage(1));
 
+    addGate(gConst);
+    m_tool_move->setSelected(true);
+    Tool::getSelected()->isUsed(true);
+    gConst->snapToMouse(true);
+    unselectAllButtons();
+    m_moveToolButton->setStyleSheet("background-color: #cadeea");
+}
 
 void MainWindow::resizeEvent(QResizeEvent* e)
 {
-    QSize size(this->geometry().width()-40,this->geometry().height()-180);
+    QRect geometry = this->geometry();
+    QSize size(geometry.width()-40,geometry.height()-180);
     SFMLView->setSize(size);
+
+    ui->ribbonDockWidget->setGeometry(QRect(5,1,geometry.width()-10,120));
 }
 void MainWindow::checkKeyEvents()
 {
@@ -283,6 +421,7 @@ void MainWindow::checkKeyEvents()
     {
        // resetToolButtonState();
         Tool::unselect();
+        unselectAllButtons();
         //m_moveToolButton->setDown(false);
         //m_connectToolButton->setDown(false);
         //m_connectToolButton->setCheckable(false);
@@ -293,4 +432,56 @@ void MainWindow::checkKeyEvents()
 void MainWindow::onSimulateIteration()
 {
     Gate::global_processLogic();
+}
+
+void MainWindow::onDeleteRequest(Shape *shape)
+{
+    m_shapesDeleteLater.push_back(shape);
+}
+
+void MainWindow::onPlaced(Gate *gate)
+{
+
+}
+void MainWindow::onStartMoving(Gate *gate)
+{
+
+}
+void MainWindow::onClicked(Gate *gate)
+{
+
+}
+void MainWindow::onAddCopyOf(Gate *gate)
+{
+    m_makeCopyOf = gate;
+}
+
+void MainWindow::addGate(Gate *gate)
+{
+    m_shapesAddLater.push_back(gate);
+}
+
+void MainWindow::addLogicGate(LogicGate::Logic logic)
+{
+    if(Tool::getSelected() != nullptr && Tool::getSelected()->isUsed())
+    {
+        qDebug() << "Tool is in usage";
+        return;
+    }
+    LogicGate *gate = new LogicGate(Vector2i(0,0),2);
+    if(gate != nullptr)
+    {
+        gate->logic(logic);
+
+        m_tool_move->setSelected(true);
+        Tool::getSelected()->isUsed(true);
+        gate->snapToMouse(true);
+        addGate(gate);
+        unselectAllButtons();
+        m_moveToolButton->setStyleSheet("background-color: #cadeea");
+    }
+    else
+    {
+        qDebug() << "can't create gate";
+    }
 }
