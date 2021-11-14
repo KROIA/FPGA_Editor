@@ -1,7 +1,7 @@
 #include "gate.h"
 
 sf::Font* Gate::m_font = nullptr;
-vector<Gate *> Gate::m_globalGatelIst;
+//vector<Gate *> Gate::m_globalGatelIst;
 
 const sf::Keyboard::Key Gate::key_shiftCopy = sf::Keyboard::Key::LShift;
 
@@ -21,7 +21,7 @@ Gate::Gate(Vector2i pos,int inputs, int outputs)
 Gate::Gate(const Gate &other)
     :   Shape(other)
 {
-    m_globalGatelIst.push_back(this);
+    //m_globalGatelIst.push_back(this);
     //m_leftSidePinList = other.m_leftSidePinList;
     //m_rightSidePinList = other.m_rightSidePinList;
     m_inputValues = other.m_inputValues;
@@ -41,19 +41,20 @@ Gate::Gate(const Gate &other)
     }
     updateGate();
 }
-Gate *Gate::clone()
+Gate *Gate::clone()const
 {
     Gate *cl = new Gate(*this);
-    cl->m_isCopying = true;
+    cl->deleteOnEscape(true);
     return cl;
 }
 void Gate::setup()
 {
-    m_globalGatelIst.push_back(this);
+    //m_globalGatelIst.push_back(this);
     //int inputPins = 4;
     //int outputPins = 2;
-    m_position = Vector2i(100,150);
+    m_position = Vector2i(0,0);
     m_moving = false;
+    m_isCopying = false;
     m_angle = 0;
     if(m_font == nullptr)
     {
@@ -97,9 +98,9 @@ void Gate::setup(int inputs, int outputs)
 
 Gate::~Gate()
 {
-    for(size_t i=0; i<m_globalGatelIst.size(); i++)
+    /*for(size_t i=0; i<m_globalGatelIst.size(); i++)
         if(m_globalGatelIst[i] == this)
-            m_globalGatelIst.erase(m_globalGatelIst.begin() + i);
+            m_globalGatelIst.erase(m_globalGatelIst.begin() + i);*/
 
     for(size_t i=0; i<m_leftSidePinList.size(); i++)
     {
@@ -111,7 +112,20 @@ Gate::~Gate()
     }
 }
 
-
+void Gate::updateEvents(vector<sf::Event> *events,
+                        bool mouseDoubleClickEvent,
+                        sf::RenderWindow *window)
+{
+    Shape::updateEvents(events,mouseDoubleClickEvent,window);
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        m_leftSidePinList[i]->updateEvents(events,mouseDoubleClickEvent,window);
+    }
+    for(size_t i=0; i<m_rightSidePinList.size(); i++)
+    {
+        m_rightSidePinList[i]->updateEvents(events,mouseDoubleClickEvent,window);
+    }
+}
 void Gate::onEventUpdate(sf::RenderWindow *window)
 {
     if(m_moving)
@@ -175,6 +189,10 @@ void Gate::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
         }
     }
 }
+void Gate::onDoubleKlick()
+{
+
+}
 
 void Gate::internalAddPin(const Pin &pin)
 {
@@ -232,6 +250,48 @@ void Gate::addPin(const vector<Pin> &pinList)
     }
     updateGate();
 }
+Pin* Gate::getLeftSidePin(const string &name) const
+{
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        if(m_leftSidePinList[i]->name() == name)
+        {
+            return m_leftSidePinList[i];
+        }
+    }
+    return nullptr;
+}
+Pin* Gate::getRightSidePin(const string &name) const
+{
+    for(size_t i=0; i<m_rightSidePinList.size(); i++)
+    {
+        if(m_rightSidePinList[i]->name() == name)
+        {
+            return m_rightSidePinList[i];
+        }
+    }
+    return nullptr;
+}
+size_t Gate::getLeftSidePinCount() const
+{
+    return m_leftSidePinList.size();
+}
+size_t Gate::getRightSidePinCount() const
+{
+    return m_rightSidePinList.size();
+}
+Pin* Gate::getPin(const string &name) const
+{
+    Pin* a = getLeftSidePin(name);
+    if(a!=nullptr)
+        return a;
+
+    a = getRightSidePin(name);
+    if(a!=nullptr)
+        return a;
+
+    return nullptr;
+}
 void Gate::removePin(const string &name)
 {
     for(size_t i=0; i<m_leftSidePinList.size(); i++)
@@ -275,11 +335,21 @@ void Gate::draw(sf::RenderWindow *window, Vector2i drawPos)
 {
     if(m_parent != nullptr)
     {
-        m_isVisible = m_parent->isVisible();
+       // m_isVisible = m_parent->isVisible();
         drawPos += m_parent->getPos();
     }
     if(!m_isVisible)
         return;
+
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        m_leftSidePinList[i]->draw(window,drawPos);
+    }
+    for(size_t i=0; i<m_rightSidePinList.size(); i++)
+    {
+        m_rightSidePinList[i]->draw(window,drawPos);
+    }
+
     drawPos += m_position;
     m_boundingBox.set(Vector2i(drawPos.x-m_dimensions.x/2,drawPos.y-m_dimensions.y/2),
                       Vector2i(drawPos.x+m_dimensions.x/2,drawPos.y+m_dimensions.y/2));
@@ -332,9 +402,25 @@ void Gate::draw(sf::RenderWindow *window, Vector2i drawPos)
         m_rightSidePinList[i].draw(window,drawPos);
     }*/
 
+
+
     window->draw(convex);
     window->draw(m_label);
    // window->draw(line,4,sf::LineStrip);
+}
+void Gate::drawDebug(sf::RenderWindow *window, Vector2i drawPos)
+{
+    if(!m_isVisible)
+        return;
+    Shape::drawDebug(window,drawPos);
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        m_leftSidePinList[i]->drawDebug(window,drawPos);
+    }
+    for(size_t i=0; i<m_rightSidePinList.size(); i++)
+    {
+        m_rightSidePinList[i]->drawDebug(window,drawPos);
+    }
 }
 
 void Gate::inputVoltage(size_t index, float voltage)
@@ -398,12 +484,26 @@ void Gate::snapToMouse(bool enable)
         m_moving = false;
     }
 }
+void Gate::deleteOnEscape(bool enable)
+{
+    m_isCopying = true;
+}
 void Gate::rotate()
 {
     m_angle = (m_angle+90)%360;
     updateGate();
 }
-void Gate::global_processLogic()
+void Gate::rotate(int angle)
+{
+    m_angle = (m_angle+angle)%360;
+    updateGate();
+}
+void Gate::setRotation(int angle)
+{
+    m_angle = angle%360;
+    updateGate();
+}
+/*void Gate::global_processLogic()
 {
     for(size_t i=0; i<m_globalGatelIst.size(); i++)
         m_globalGatelIst[i]->readInputs();
@@ -414,7 +514,11 @@ void Gate::global_processLogic()
     for(size_t i=0; i<m_globalGatelIst.size(); i++)
         m_globalGatelIst[i]->setOutputs();
 }
+*/
+void Gate::utilityUpdate()
+{
 
+}
 void Gate::readInputs()
 {
     for(size_t i=0; i<m_leftSidePinList.size(); i++)
@@ -422,7 +526,10 @@ void Gate::readInputs()
 }
 void Gate::processLogic()
 {
-
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        m_leftSidePinList[i]->processLogic();
+    }
 }
 void Gate::setOutputs()
 {
@@ -441,7 +548,10 @@ void Gate::toolCleared(Tool *oldTool)
     Tool::endListen(this);
     m_moving = false;
     if(m_isCopying)
+    {
+        m_isVisible = false;
         emit deleteRequest(this);
+    }
     setPos(m_movingOldPos);
 }
 
@@ -472,13 +582,16 @@ void Gate::updateGate()
     if(m_leftSidePinList.size() > m_rightSidePinList.size())
     {
         m_dimensions = Vector2i(m_gridsize.x*6,m_gridsize.y*(m_leftSidePinList.size()*2));
-        pinSpacing = m_dimensions.y / (m_leftSidePinList.size());
+        if(m_leftSidePinList.size() > 0)
+            pinSpacing = m_dimensions.y / (m_leftSidePinList.size());
+
 
     }
     else
     {
         m_dimensions = Vector2i(m_gridsize.x*6,m_gridsize.y*(m_rightSidePinList.size()*2));
-        pinSpacing = m_dimensions.y / (m_rightSidePinList.size());
+        if(m_rightSidePinList.size() > 0)
+            pinSpacing = m_dimensions.y / (m_rightSidePinList.size());
 
     }
     //sf::Transform rotationTransform;

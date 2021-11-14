@@ -98,6 +98,19 @@ float Pin::voltage() const
 {
     return m_voltage;
 }
+void Pin::processLogic()
+{
+    if(m_direction != Direction::output) // Update the voltage
+    {
+        for(size_t i=0; i<m_connectedToList.size(); i++)
+        {
+            if(m_connectedToList[i]->m_direction == Direction::output)
+            {
+                m_voltage = m_connectedToList[i]->m_voltage;
+            }
+        }
+    }
+}
 Vector2i Pin::connectionPoint()
 {
     switch(m_angle)
@@ -139,11 +152,11 @@ void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
 {
     if(m_parent != nullptr)
     {
-        m_isVisible = m_parent->isVisible();
+        //m_isVisible = m_parent->isVisible();
         drawPos += m_parent->getPos();
     }
-    if(!m_isVisible)
-        return;
+    //if(!m_isVisible)
+    //    return;
     drawPos += m_position;
     Vector2i labelOffset(0,0);
     switch(m_angle)
@@ -188,16 +201,7 @@ void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
 
     if(Physics::displayPhysical)
     {
-        if(m_direction != Direction::output) // Update the voltage
-        {
-            for(size_t i=0; i<m_connectedToList.size(); i++)
-            {
-                if(m_connectedToList[i]->m_direction == Direction::output)
-                {
-                    m_voltage = m_connectedToList[i]->m_voltage;
-                }
-            }
-        }
+
         line.setFillColor(Physics::coloredVoltage(m_voltage));
     }
     else
@@ -219,6 +223,13 @@ void Pin::draw(sf::RenderWindow *window, Vector2i drawPos)
 
     };*/
 
+    for(size_t i=0; i<m_connectionList.size(); i++)
+    {
+        if(m_connectionList[i]->startPin() == this)
+        {
+            m_connectionList[i]->draw(window);
+        }
+    }
 
 
     window->draw(line);
@@ -370,6 +381,10 @@ void Pin::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
             }
         }
     }
+}
+void Pin::onDoubleKlick()
+{
+
 }
 void Pin::createConnection(Pin *other)
 {

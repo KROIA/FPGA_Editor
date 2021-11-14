@@ -11,6 +11,7 @@
 #include "logicGate.h"
 #include "logicGate_CONST.h"
 #include "logicGateImported.h"
+#include "module.h"
 #include "debug.h"
 
 #include <QMenu>
@@ -45,6 +46,10 @@ class MainWindow : public QMainWindow
             void onToolDisconnectButtonPressed();
             void onToolDeleteButtonPressed();
 
+            void onToolAddIOInputButtonPressed();
+            void onToolAddIOOutputButtonPressed();
+            void onToolMoveModuleUp();
+
             void onToolAddGateAND();
             void onToolAddGateOR();
             void onToolAddGateXOR();
@@ -53,6 +58,8 @@ class MainWindow : public QMainWindow
             void onToolAddGateXNOR();
             void onToolAddGateNOT();
             void onToolAddConst();
+
+
 
             void resizeEvent(QResizeEvent* e);
             void checkKeyEvents();
@@ -67,6 +74,10 @@ class MainWindow : public QMainWindow
             void onStartMoving(Gate *gate);
             void onClicked(Gate *gate);
             void onAddCopyOf(Gate *gate);
+
+            // From Modules
+            void onInsideViewEnter(Module *module);
+            void onInsideViewExit(Module *module);
 
     private:
 
@@ -86,6 +97,9 @@ class MainWindow : public QMainWindow
         vector<Gate*>  m_shapes;
         vector<Shape*>  m_shapesDeleteLater;
         vector<Gate*>   m_shapesAddLater;
+        Module *m_topModule;
+        vector<Module*> m_openModuleStack;
+
         Gate*   m_makeCopyOf;
         QTimer  frameUpdateTimer;
         Canvas* SFMLView;

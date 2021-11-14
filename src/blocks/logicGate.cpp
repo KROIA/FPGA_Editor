@@ -38,7 +38,7 @@ LogicGate::~LogicGate()
 
 }
 
-Gate *LogicGate::clone()
+Gate *LogicGate::clone() const
 {
     return new LogicGate(*this);
 }
@@ -88,6 +88,7 @@ LogicGate::Logic LogicGate::stringToLogic(const string &logicStr)
 
 void LogicGate::processLogic()
 {
+    Gate::processLogic();
     bool output = true;
     bool invert = false;
     switch(m_logic)

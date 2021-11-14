@@ -36,7 +36,9 @@ SOURCES += \
     $$srcPath/blocks/logicGate.cpp \
     $$srcPath/blocks/logicGate_CONST.cpp \
     $$srcPath/core/physics.cpp \
+    src/blocks/ioPin.cpp \
     src/blocks/logicGateImported.cpp \
+    src/blocks/module.cpp \
     src/core/projectConfig.cpp
 
 HEADERS += \
@@ -56,7 +58,9 @@ HEADERS += \
     $$incPath/blocks/logicGate.h \
     $$incPath/core/physics.h \
     $$incPath/blocks/logicGate_CONST.h \
+    inc/blocks/ioPin.h \
     inc/blocks/logicGateImported.h \
+    inc/blocks/module.h \
     inc/core/projectConfig.h
 
 FORMS += \

@@ -33,6 +33,7 @@ class Pin   :   public Shape
         string name() const;
         void voltage(float voltage);
         float voltage() const;
+        virtual void processLogic();
 
         Vector2i connectionPoint();
         Direction direction() const;
@@ -57,7 +58,7 @@ class Pin   :   public Shape
         virtual void onEventUpdate(sf::RenderWindow *window);
         virtual void onMouseOver(Vector2i mousePos);
         virtual void onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos);
-
+        virtual void onDoubleKlick();
 
     private:
 

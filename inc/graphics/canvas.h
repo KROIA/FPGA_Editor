@@ -19,6 +19,12 @@ class Canvas : public QSFMLCanvas
                  const QSize& Size
                 /* vector<Shape*> *shapes*/);
         ~Canvas();
+
+        void addShape(size_t layer,Shape *shape);
+        void removeShape(Shape *shape);
+        void clearShape(size_t layer);
+        void clearShape();
+
         void OnInit();
         void OnUpdate();
 
@@ -27,7 +33,10 @@ class Canvas : public QSFMLCanvas
 
         static Vector2i getMousePosition();
 
+        void mouseDoubleClickEvent(QMouseEvent * e);
         void updateEvents();
+
+
 
     signals:
         void checkKeyEvents();
@@ -39,12 +48,14 @@ class Canvas : public QSFMLCanvas
         void zoomViewAt(sf::Vector2i pixel, sf::RenderWindow* window, float zoom);
         float m_zoomValue;
         bool m_moving;
+        bool m_doubleClickEvent;
         Vector2f m_movingOldPos;
 
         Tool m_selectedTool;
         //vector<Shape*> *m_shapes;
 
         static Canvas *m_instance;
+        vector<vector<Shape *> >m_shapeList;
 
 
         //sf::Clock myClock;

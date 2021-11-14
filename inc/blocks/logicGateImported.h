@@ -12,7 +12,7 @@ class LogicGateImported     :   public Gate
         LogicGateImported(const LogicGateImported &other);
         ~LogicGateImported();
 
-        virtual Gate *clone();
+        virtual Gate *clone() const;
 
         static LogicGateImported *importGate(const string &path);
 

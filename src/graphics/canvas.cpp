@@ -16,10 +16,56 @@ Canvas::Canvas(QWidget* Parent,
     m_instance = this;
     m_moving = false;
 
+    m_shapeList.push_back(vector<Shape*> ());
+    m_shapeList.push_back(vector<Shape*> ());
+    m_shapeList.push_back(vector<Shape*> ());
+    m_shapeList.push_back(vector<Shape*> ());
+    m_shapeList.push_back(vector<Shape*> ());
+
 }
 Canvas::~Canvas()
 {
 
+}
+void Canvas::addShape(size_t layer,Shape *shape)
+{
+    if(m_shapeList.size()>layer)
+    {
+        m_shapeList[layer].push_back(shape);
+    }
+    else
+    {
+        qDebug() << "Layer to high: "<<layer;
+    }
+}
+void Canvas::removeShape(Shape *shape)
+{
+    for(size_t j=0; j<m_shapeList.size(); j++)
+    {
+        for(size_t i=0; i<m_shapeList[j].size(); i++)
+        {
+            if(m_shapeList[j][i] == shape)
+            {
+                m_shapeList.erase(m_shapeList.begin()+i);
+                if(i>0)
+                    i--;
+            }
+        }
+    }
+}
+void Canvas::clearShape(size_t layer)
+{
+    if(m_shapeList.size()>layer)
+    {
+        m_shapeList[layer].clear();
+    }
+}
+void Canvas::clearShape()
+{
+    for(size_t i=0; i<m_shapeList.size(); i++)
+    {
+        m_shapeList[i].clear();
+    }
 }
 void Canvas::OnInit()
 {
@@ -47,10 +93,25 @@ void Canvas::OnUpdate()
 
     updateEvents();
 
-    Shape::global_draw(this);
+    for(size_t j=0; j<m_shapeList.size(); j++)
+    {
+        for(size_t i=0; i<m_shapeList[j].size(); i++)
+        {
+            m_shapeList[j][i]->draw(this);
+        }
+    }
+
+    //Shape::global_draw(this);
 
 #ifdef DEBUG_MODE
-    Shape::global_drawDebug(this);
+    for(size_t j=0; j<m_shapeList.size(); j++)
+    {
+        for(size_t i=0; i<m_shapeList[j].size(); i++)
+        {
+            m_shapeList[j][i]->drawDebug(this);
+        }
+    }
+    //Shape::global_drawDebug(this);
 #endif
 }
 
@@ -75,6 +136,10 @@ Vector2i Canvas::getMousePosition()
     return Vector2i(0,0);
 }
 
+void Canvas::mouseDoubleClickEvent(QMouseEvent * e)
+{
+    m_doubleClickEvent = true;
+}
 void Canvas::updateEvents()
 {
     vector<sf::Event> events;
@@ -136,11 +201,14 @@ void Canvas::updateEvents()
                 sf::Vector2f newPos = sf::Vector2f(e.mouseMove.x, e.mouseMove.y);
                 // Determine how the cursor has moved
                 // Swap these to invert the movement direction
-                sf::Vector2f deltaPos = m_movingOldPos - newPos;
+
+                //this->mapPixelToCoords(sf::Vector2i(m_movingOldPos*100.f - newPos*100.f))/100.f;
+                sf::Vector2f deltaPos = (this->mapPixelToCoords(sf::Vector2i(m_movingOldPos*100.f))-
+                                         this->mapPixelToCoords(sf::Vector2i(newPos*100.f)))/100.f;
 
                 // Applying zoom "reduction" (or "augmentation")
-                deltaPos.x *= m_zoomValue;
-                deltaPos.y *= m_zoomValue;
+               // deltaPos.x *= m_zoomValue;
+               // deltaPos.y *= m_zoomValue;
 
                 // Move our view accordingly and update the window
                 sf::View view = this->getView();
@@ -157,7 +225,15 @@ void Canvas::updateEvents()
 
     }
 
-    Shape::global_updateEvents(&events,this);
+    for(size_t j=0; j<m_shapeList.size(); j++)
+    {
+        for(size_t i=0; i<m_shapeList[j].size(); i++)
+        {
+            m_shapeList[j][i]->updateEvents(&events,m_doubleClickEvent,this);
+        }
+    }
+    m_doubleClickEvent = false;
+    //Shape::global_updateEvents(&events,this);
 }
 void Canvas::p_checkKeyEvents()
 {

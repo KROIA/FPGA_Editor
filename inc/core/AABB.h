@@ -18,6 +18,7 @@ class AABB{
         void set(Vector2i begin, Vector2i end);
         void begin(Vector2i begin);
         void end(Vector2i end);
+        void move(Vector2i delta);
 
         Vector2i begin() const;
         Vector2i end() const;

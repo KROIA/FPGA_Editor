@@ -10,7 +10,8 @@ Shape::Shape()
     m_parent = nullptr;
     setPos(Vector2i(0,0));
     global_shapeList.reserve(global_shapeList.size()*2);
-    global_shapeList.push_back(this);
+   // if(m_parent == nullptr)
+   //     global_shapeList.push_back(this);
     m_isVisible = true;
 }
 Shape::Shape(Shape *parent)
@@ -19,7 +20,8 @@ Shape::Shape(Shape *parent)
     m_parent = parent;
     setPos(Vector2i(0,0));
     global_shapeList.reserve(global_shapeList.size()*2);
-    global_shapeList.push_back(this);
+    //if(m_parent == nullptr)
+    //    global_shapeList.push_back(this);
     m_isVisible = true;
 }
 Shape::Shape(const Shape &other)
@@ -29,7 +31,8 @@ Shape::Shape(const Shape &other)
     m_boundingBox = other.m_boundingBox;
     m_isVisible = other.m_isVisible;
     m_useGrid = other.m_useGrid;
-    global_shapeList.push_back(this);
+    //if(m_parent == nullptr)
+    //    global_shapeList.push_back(this);
 }
 Shape::~Shape()
 {
@@ -38,7 +41,6 @@ Shape::~Shape()
         if(global_shapeList[i] == this)
         {
             global_shapeList.erase(global_shapeList.begin() + i);
-            return;
         }
     }
     Tool::endListen(this);
@@ -46,12 +48,28 @@ Shape::~Shape()
 
 void Shape::setParent(Shape *parent)
 {
+    if(m_parent == parent)
+        return;
     m_parent = parent;
+   /* if(m_parent == nullptr)
+        global_shapeList.push_back(this);
+    else
+    {
+        for(size_t i=0; i<global_shapeList.size(); i++)
+        {
+            if(global_shapeList[i] == this)
+            {
+                global_shapeList.erase(global_shapeList.begin() + i);
+            }
+        }
+    }*/
 }
 
 void Shape::setPos(Vector2i pos)
 {
+    Vector2i delta = pos - m_position;
     m_position = getGridSnaped(pos);
+    m_boundingBox.move(delta);
 }
 Vector2i Shape::getPos() const
 {
@@ -73,20 +91,21 @@ void Shape::draw(sf::RenderWindow *window, Vector2i drawPos)
 }
 void Shape::drawDebug(sf::RenderWindow *window, Vector2i drawPos)
 {
-    if(m_parent != nullptr)
-        m_isVisible = m_parent->m_isVisible;
+    //if(m_parent != nullptr)
+    //    m_isVisible = m_parent->m_isVisible;
 
-    if(!m_isVisible)
-        return;
+    //if(!m_isVisible)
+    //    return;
 
     m_boundingBox.draw(window,Color(255,0,0));
 }
 
 void Shape::updateEvents(vector<sf::Event> *events,
-                         sf::RenderWindow *window/*,
-                         Tool *selectedTool*/)
+                         bool mouseDoubleClickEvent,
+                         sf::RenderWindow *window)
 {
-
+    if(!m_isVisible)
+        return;
 
     for(size_t i=0; i<events->size(); i++)
     {
@@ -118,6 +137,14 @@ void Shape::updateEvents(vector<sf::Event> *events,
                 break;
         }
     }
+    if(mouseDoubleClickEvent)
+    {
+        Vector2i pos(window->mapPixelToCoords(sf::Mouse::getPosition(*window)));
+        if(m_boundingBox.contains(pos))
+        {
+            onDoubleKlick();
+        }
+    }
     onEventUpdate(window);
 
     /*for(int i=0; i<sf::Mouse::Button::ButtonCount; i++)
@@ -147,6 +174,10 @@ void Shape::onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos)
 {
 
 }
+void Shape::onDoubleKlick()
+{
+
+}
 
 void Shape::global_updateEvents(vector<sf::Event> *events,
                                 sf::RenderWindow *window/*,
@@ -154,7 +185,7 @@ void Shape::global_updateEvents(vector<sf::Event> *events,
 {
     for(size_t i=0; i<global_shapeList.size(); i++)
     {
-        global_shapeList[i]->updateEvents(events,window/*,selectedTool*/);
+      //  global_shapeList[i]->updateEvents(events,window/*,selectedTool*/);
     }
 }
 void Shape::global_draw(sf::RenderWindow *window)
@@ -170,6 +201,11 @@ void Shape::global_drawDebug(sf::RenderWindow *window)
     {
         global_shapeList[i]->drawDebug(window);
     }
+}
+
+bool Shape::overlaps(const Shape &other)
+{
+    return m_boundingBox.overlaps(other.m_boundingBox);
 }
 
 Vector2i Shape::getGridSnaped(Vector2i pos)

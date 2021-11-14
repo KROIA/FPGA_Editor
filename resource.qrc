@@ -23,6 +23,7 @@
 		<file>Resources/icons/gates/gate_NOR.svg</file>
 		<file>Resources/icons/gates/gate_XNOR.svg</file>
 		<file>Resources/icons/gates/gate_NOT.svg</file>
+		<file>Resources/icons/gates/gate_CONST.svg</file>
 		
 		<file>Resources/modules/gate_AND.v</file>
     </qresource>

@@ -54,13 +54,41 @@ void Connection::draw(sf::RenderWindow *window, Vector2i drawPos)
             m_voltage = m_endPin->voltage();
         drawColor = Physics::coloredVoltage(m_voltage);
     }
-
-    sf::Vertex line[2] =
+    Vector2f delta(m_endPin->connectionPoint()-m_startPin->connectionPoint());
+    float angle;
+    float lengt = sqrt(delta.x*delta.x + delta.y*delta.y);
+    if(delta.x != 0)
     {
-        sf::Vertex(sf::Vector2f(m_startPin->connectionPoint()+drawPos),m_color),
-        sf::Vertex(sf::Vector2f(m_endPin->connectionPoint()+drawPos),m_color),
+        angle = atan(delta.y/delta.x)*180/M_PI;
+        if(delta.x < 0)
+            angle = 180+angle;
+    }
+    else
+        angle = delta.y > 0 ? 90 : 270;
+
+    //qDebug() << "angle: "<<angle << " length: "<<lengt;
+
+    sf::RectangleShape line((Vector2f(lengt,2)));
+    line.setOrigin(Vector2f(0,1));
+    line.rotate(angle);
+
+    if(Physics::displayPhysical)
+    {
+
+        line.setFillColor(Physics::coloredVoltage(m_voltage));
+    }
+    else
+        line.setFillColor(drawColor);
+
+    line.setPosition((Vector2f(m_startPin->connectionPoint()+drawPos)));
+
+    /*sf::Vertex line[2] =
+    {
+        sf::Vertex(sf::Vector2f(m_startPin->connectionPoint()+drawPos),drawColor),
+        sf::Vertex(sf::Vector2f(m_endPin->connectionPoint()+drawPos),drawColor),
     };
-    window->draw(line,2,sf::LineStrip);
+    window->draw(line,2,sf::LineStrip);*/
+    window->draw(line);
 }
 void Connection::drawDebug(sf::RenderWindow *window, Vector2i drawPos)
 {

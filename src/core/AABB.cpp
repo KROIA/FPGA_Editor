@@ -87,7 +87,11 @@ void AABB::end(Vector2i end)
     }
     m_end   = end;
 }
-
+void AABB::move(Vector2i delta)
+{
+    m_begin += delta;
+    m_end   += delta;
+}
 
 Vector2i AABB::begin() const
 {

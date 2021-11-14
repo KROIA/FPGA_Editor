@@ -26,19 +26,28 @@ class Gate  :   public Shape
         Gate(const Gate &other);
         ~Gate();
 
-        virtual Gate *clone();
+        virtual Gate *clone() const;
 
         void name(const string &name);
         string name() const;
 
         void addPin(const Pin& pin);
         void addPin(const vector<Pin> &pinList);
+        Pin* getPin(const string &name) const;
+        Pin* getLeftSidePin(const string &name) const;
+        Pin* getRightSidePin(const string &name) const;
+
+        size_t getLeftSidePinCount() const;
+        size_t getRightSidePinCount() const;
+
         void removePin(const string &name);
         void removeLastLeftPin();
         void removeLastRightPin();
 
 
         virtual void draw(sf::RenderWindow *window, Vector2i drawPos = Vector2i(0,0));
+        virtual void drawDebug(sf::RenderWindow *window, Vector2i drawPos = Vector2i(0,0));
+
 
         void inputVoltage(size_t index, float voltage);
         float inputVoltage(size_t index);
@@ -50,24 +59,39 @@ class Gate  :   public Shape
         size_t rightSidePinCount() const;
 
         void snapToMouse(bool enable);
+        void deleteOnEscape(bool enable);
         void rotate();
+        void rotate(int angle);
+        void setRotation(int angle);
 
-        static void global_processLogic();
+
+        virtual void updateEvents(vector<sf::Event> *events,
+                                  bool mouseDoubleClickEvent,
+                                  sf::RenderWindow *window);
+        virtual void onEventUpdate(sf::RenderWindow *window);
+        virtual void onMouseOver(Vector2i mousePos);
+        virtual void onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos);
+        virtual void onDoubleKlick();
+
+        virtual void utilityUpdate();
+        virtual void readInputs();
+        virtual void processLogic();
+        virtual void setOutputs();
+
+
 
     signals:
         void startsMoving(Gate *gate);
         void placed(Gate *gate);
         void clicked(Gate *gate);
         void addCopyOf(Gate *gate);
+        void deleteRequest(Gate *gate);
 
     protected:
         // From ToolListener
         virtual void toolChanged(Tool *oldTool, Tool *newTool);
         virtual void toolCleared(Tool *oldTool);
 
-        virtual void onEventUpdate(sf::RenderWindow *window);
-        virtual void onMouseOver(Vector2i mousePos);
-        virtual void onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos);
 
 
 
@@ -77,9 +101,7 @@ class Gate  :   public Shape
         const vector<Pin*> &getLeftPins() const;
         const vector<Pin*> &getRightPins() const;
 
-        void readInputs();
-        virtual void processLogic();
-        void setOutputs();
+
 
 
 
@@ -108,7 +130,7 @@ class Gate  :   public Shape
         vector<float> m_inputValues;
         vector<float> m_outputValues;
 
-        static vector<Gate *> m_globalGatelIst;
+        //static vector<Gate *> m_globalGatelIst;
 
 };
 #endif // GATE_H

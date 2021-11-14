@@ -7,6 +7,7 @@
 #include "toollistener.h"
 #include "physics.h"
 #include <QObject>
+#include <qDebug>
 
 
 
@@ -36,9 +37,9 @@ class Shape :   public QObject, public ToolListener
 
 
 
-        void updateEvents(vector<sf::Event> *events,
-                          sf::RenderWindow *window/*,
-                          Tool *selectedTool*/);
+        virtual void updateEvents(vector<sf::Event> *events,
+                                  bool mouseDoubleClickEvent,
+                                  sf::RenderWindow *window);
 
         static void global_updateEvents(vector<sf::Event> *events,
                                         sf::RenderWindow *window/*,
@@ -46,8 +47,10 @@ class Shape :   public QObject, public ToolListener
         static void global_draw(sf::RenderWindow *window);
         static void global_drawDebug(sf::RenderWindow *window);
 
+        bool overlaps(const Shape &other);
+
     signals:
-        void deleteRequest(Shape *shape);
+
 
     protected:
         // From ToolListener
@@ -57,6 +60,7 @@ class Shape :   public QObject, public ToolListener
         virtual void onEventUpdate(sf::RenderWindow *window);
         virtual void onMouseOver(Vector2i mousePos);
         virtual void onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos);
+        virtual void onDoubleKlick();
 
         Vector2i getGridSnaped(Vector2i pos);
 

@@ -24,7 +24,7 @@ class LogicGate     :   public Gate
         LogicGate(Vector2i pos,int inputs);
         ~LogicGate();
 
-        virtual Gate *clone();
+        virtual Gate *clone() const;
 
         void logic(Logic logic);
         Logic logic() const;

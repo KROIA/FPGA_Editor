@@ -62,7 +62,7 @@ LogicGateImported::~LogicGateImported()
 
 }
 
-Gate *LogicGateImported::clone()
+Gate *LogicGateImported::clone()const
 {
     return new LogicGateImported(*this);
 }

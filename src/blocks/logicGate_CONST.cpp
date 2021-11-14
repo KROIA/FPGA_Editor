@@ -28,7 +28,7 @@ LogicGate_CONST::~LogicGate_CONST()
 
 }
 
-Gate *LogicGate_CONST::clone()
+Gate *LogicGate_CONST::clone()const
 {
     return new LogicGate_CONST(*this);
 }

@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     m_simulationTimer = new QTimer(this);
     connect(m_simulationTimer,&QTimer::timeout,this,&MainWindow::onSimulateIteration);
-    m_simulationTimeMS = 100;
+    m_simulationTimeMS = 5;
     m_makeCopyOf = nullptr;
 
     // Create a SFML view inside the main frame
@@ -25,6 +25,28 @@ MainWindow::MainWindow(QWidget *parent)
     m_tool_moduleRemover = new Tool(Tool::Type::moduleRemover);
 
     m_grid = new Grid();
+    SFMLView->addShape(0,m_grid);
+
+    m_topModule = new Module();
+    m_topModule->setViewInside(true);
+    m_topModule->addIO("input1",Pin::Direction::input);
+    //m_topModule->addIO("input2",Pin::Direction::input);
+    //m_topModule->addIO("input3",Pin::Direction::input);
+    m_topModule->addIO("output1",Pin::Direction::output);
+    //m_topModule->addIO("output1",Pin::Direction::output);
+    m_openModuleStack.push_back(m_topModule);
+
+    Module *newModule = new Module();
+    newModule->name("test");
+    newModule->addIO("in1",Pin::Direction::input);
+    newModule->addIO("in2",Pin::Direction::input);
+    newModule->addIO("out",Pin::Direction::output);
+    newModule->setPos(Vector2i(50,50));
+    m_topModule->addGate(newModule);
+    connect(newModule,&Module::insideViewEnter,this,&MainWindow::onInsideViewEnter);
+    connect(newModule,&Module::insideViewExit,this,&MainWindow::onInsideViewExit);
+    //newModule->setViewInside(true);
+
 
     setupRibbon();
     resizeEvent(nullptr);
@@ -164,6 +186,16 @@ void MainWindow::setupRibbon()
 
 
       }
+      // Module
+      {
+          addRibbonButton("Edit","Module","Add Input","moduleInput.svg",
+                          "Adds a Input to the Module",&MainWindow::onToolAddIOInputButtonPressed);
+          addRibbonButton("Edit","Module","Add Output","moduleOutput.svg",
+                          "Adds a Output to the Module",&MainWindow::onToolAddIOOutputButtonPressed);
+          addRibbonButton("Edit","Module","Exit Module","moduleExit.svg",
+                          "Get out of this Module",&MainWindow::onToolMoveModuleUp);
+
+      }
       // Add Standard Gates
       {
           string tab = "Edit";
@@ -256,15 +288,25 @@ void MainWindow::onFrameUpdate()
 
     for(size_t i=0; i<m_shapesAddLater.size(); i++)
     {
-        m_shapes.push_back(m_shapesAddLater[i]);
+        //m_shapes.push_back(m_shapesAddLater[i]);
+        m_openModuleStack[m_openModuleStack.size()-1]->addGate(m_shapesAddLater[i]);
         connect(m_shapesAddLater[i],&Gate::placed,this,&MainWindow::onPlaced);
         connect(m_shapesAddLater[i],&Gate::startsMoving,this,&MainWindow::onStartMoving);
         connect(m_shapesAddLater[i],&Gate::clicked,this,&MainWindow::onClicked);
         connect(m_shapesAddLater[i],&Gate::addCopyOf,this,&MainWindow::onAddCopyOf);
-        connect(m_shapesAddLater[i],&Shape::deleteRequest,this,&MainWindow::onDeleteRequest);
+        //connect(m_shapesAddLater[i],&Shape::deleteRequest,this,&MainWindow::onDeleteRequest);
     }
     m_shapesAddLater.clear();
+
+    if(!m_simulationTimer->isActive())
+    {
+        m_topModule->utilityUpdate();
+    }
+
+    SFMLView->clearShape(1);
+    SFMLView->addShape(1,m_openModuleStack[m_openModuleStack.size()-1]);
     SFMLView->repaint();
+
 }
 
 
@@ -340,6 +382,34 @@ void MainWindow::onToolDeleteButtonPressed()
         m_tool_moduleRemover->setSelected(true);
     }
 }
+void MainWindow::onToolAddIOInputButtonPressed()
+{
+    int index = 1;
+    string name = "In_"+std::to_string(index);
+    while(m_openModuleStack[m_openModuleStack.size()-1]->getPin(name) != nullptr)
+    {
+        index++;
+        name = "In_"+std::to_string(index);
+    }
+
+    m_openModuleStack[m_openModuleStack.size()-1]->addIO(name,Pin::Direction::input);
+}
+void MainWindow::onToolAddIOOutputButtonPressed()
+{
+    int index = 1;
+    string name = "Out_"+std::to_string(index);
+    while(m_openModuleStack[m_openModuleStack.size()-1]->getPin(name) != nullptr)
+    {
+        index++;
+        name = "Out_"+std::to_string(index);
+    }
+    m_openModuleStack[m_openModuleStack.size()-1]->addIO(name,Pin::Direction::output);
+}
+void MainWindow::onToolMoveModuleUp()
+{
+    m_openModuleStack[m_openModuleStack.size()-1]->setViewInside(false);
+}
+
 void MainWindow::onToolAddGateAND()
 {
     addLogicGate(LogicGate::Logic::AND);
@@ -370,6 +440,7 @@ void MainWindow::onToolAddGateNOT()
 }
 void MainWindow::onToolAddConst()
 {
+
     if(Tool::getSelected() != nullptr && Tool::getSelected()->isUsed())
     {
         qDebug() << "Tool is in usage";
@@ -382,6 +453,7 @@ void MainWindow::onToolAddConst()
     m_tool_move->setSelected(true);
     Tool::getSelected()->isUsed(true);
     gConst->snapToMouse(true);
+    gConst->deleteOnEscape(true);
     unselectAllButtons();
     m_moveToolButton->setStyleSheet("background-color: #cadeea");
 }
@@ -431,7 +503,24 @@ void MainWindow::checkKeyEvents()
 
 void MainWindow::onSimulateIteration()
 {
-    Gate::global_processLogic();
+    //Gate::global_processLogic();
+    m_topModule->utilityUpdate();
+    m_topModule->readInputs();
+    m_topModule->processLogic();
+    m_topModule->setOutputs();
+    /*for(size_t i=0; i<m_moduleList.size(); i++)
+    {
+        m_moduleList[i]->readInputs();
+    }
+    for(size_t i=0; i<m_moduleList.size(); i++)
+    {
+        m_moduleList[i]->processLogic();
+    }
+    for(size_t i=0; i<m_moduleList.size(); i++)
+    {
+        m_moduleList[i]->setOutputs();
+    }
+    */
 }
 
 void MainWindow::onDeleteRequest(Shape *shape)
@@ -455,6 +544,25 @@ void MainWindow::onAddCopyOf(Gate *gate)
 {
     m_makeCopyOf = gate;
 }
+void MainWindow::onInsideViewEnter(Module *module)
+{
+    Tool::unselect();
+    m_openModuleStack[m_openModuleStack.size()-1]->setVisibility(false);
+    m_openModuleStack.push_back(module);
+}
+void MainWindow::onInsideViewExit(Module *module)
+{
+    if(module == m_topModule)
+        return;
+    for(size_t i=0; i<m_openModuleStack.size(); i++)
+    {
+        if(m_openModuleStack[i] == module)
+        {
+            m_openModuleStack.erase(m_openModuleStack.begin()+i,m_openModuleStack.end());
+        }
+    }
+    m_openModuleStack[m_openModuleStack.size()-1]->setVisibility(true);
+}
 
 void MainWindow::addGate(Gate *gate)
 {
@@ -476,6 +584,7 @@ void MainWindow::addLogicGate(LogicGate::Logic logic)
         m_tool_move->setSelected(true);
         Tool::getSelected()->isUsed(true);
         gate->snapToMouse(true);
+        gate->deleteOnEscape(true);
         addGate(gate);
         unselectAllButtons();
         m_moveToolButton->setStyleSheet("background-color: #cadeea");

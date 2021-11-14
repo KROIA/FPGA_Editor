@@ -12,7 +12,7 @@ class LogicGate_CONST     :   public Gate
         LogicGate_CONST(Vector2i pos);
         ~LogicGate_CONST();
 
-        virtual Gate *clone();
+        virtual Gate *clone() const;
 
         void voltage(float voltage);
         void logicLevel(bool level);
