@@ -305,6 +305,10 @@ void Pin::removeFromBlacklist(const vector<Direction > directionList)
     for(size_t i=0; i<directionList.size(); i++)
         removeFromBlacklist(directionList[i]);
 }
+const vector<Connection*> Pin::getConnections() const
+{
+    return m_connectionList;
+}
 
 void Pin::onEventUpdate(sf::RenderWindow *window)
 {
@@ -441,6 +445,8 @@ void Pin::createConnection(Pin *other)
     other->m_connectedToList.push_back(this);
     m_connectionList.push_back(connection);
     other->m_connectionList.push_back(connection);
+    emit connectionCreate(this,connection);
+    emit other->connectionCreate(this,connection);
 }
 void Pin::deleteConnection(Pin *other)
 {
@@ -448,6 +454,8 @@ void Pin::deleteConnection(Pin *other)
     {
         if(m_connectedToList[i] == other)
         {
+            emit connectionRemove(this,m_connectionList[i]);
+            emit other->connectionRemove(this,m_connectionList[i]);
             m_connectedToList.erase(m_connectedToList.begin() + i);
             delete m_connectionList[i];
             m_connectionList.erase(m_connectionList.begin() + i);

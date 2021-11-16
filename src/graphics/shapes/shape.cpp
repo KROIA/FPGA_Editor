@@ -46,7 +46,7 @@ Shape::~Shape()
     Tool::endListen(this);
 }
 
-void Shape::setParent(Shape *parent)
+void Shape::setOwner(Shape *parent)
 {
     if(m_parent == parent)
         return;
@@ -63,6 +63,10 @@ void Shape::setParent(Shape *parent)
             }
         }
     }*/
+}
+Shape *Shape::getOwner() const
+{
+    return m_parent;
 }
 
 void Shape::setPos(Vector2i pos)
@@ -208,6 +212,10 @@ bool Shape::overlaps(const Shape &other)
     return m_boundingBox.overlaps(other.m_boundingBox);
 }
 
+size_t Shape::getObjectID()
+{
+    return (size_t)this;
+}
 Vector2i Shape::getGridSnaped(Vector2i pos)
 {
     if(!m_useGrid)

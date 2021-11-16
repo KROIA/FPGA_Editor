@@ -43,6 +43,14 @@ void LogicGate_CONST::logicLevel(bool level)
     m_voltage = Physics::Electrical::voltage_max*level;
     updateLabel();
 }
+LogicGate_CONST::ConstLogicGate_Def LogicGate_CONST::getGateDef()
+{
+    ConstLogicGate_Def def;
+    def.pos = m_position;
+    def.gateID = Gate::getObjectID();
+    def.voltage = m_voltage;
+    return def;
+}
 
 void LogicGate_CONST::processLogic()
 {

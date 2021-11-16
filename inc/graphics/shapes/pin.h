@@ -13,6 +13,7 @@ using std::string;
 
 class Pin   :   public Shape
 {
+        Q_OBJECT
     public:
         enum Direction
         {
@@ -50,6 +51,14 @@ class Pin   :   public Shape
         void removeFromBlacklist(Direction direction);
         void removeFromBlacklist(const vector<Direction> directionList);
 
+        const vector<Connection*> getConnections() const;
+
+        void createConnection(Pin *other);
+        void deleteConnection(Pin *other);
+
+    signals:
+        void connectionCreate(Pin* thisPin,Connection *con);
+        void connectionRemove(Pin* thisPin,Connection *con);
     protected:
         // From ToolListener
         virtual void toolChanged(Tool *oldTool, Tool *newTool);
@@ -62,8 +71,7 @@ class Pin   :   public Shape
 
     private:
 
-        void createConnection(Pin *other);
-        void deleteConnection(Pin *other);
+
         Connection *getConnection(Pin *other);
         void setConnectionColorToDefault();
         void setConnectionColorToDefault(size_t index);
