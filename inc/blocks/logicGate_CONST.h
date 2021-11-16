@@ -6,6 +6,12 @@
 class LogicGate_CONST     :   public Gate
 {
     public:
+        struct ConstLogicGate_Def
+        {
+            Vector2i pos;
+            size_t gateID;
+            float voltage;
+        };
 
         LogicGate_CONST();
         LogicGate_CONST(const LogicGate_CONST &other);
@@ -16,6 +22,8 @@ class LogicGate_CONST     :   public Gate
 
         void voltage(float voltage);
         void logicLevel(bool level);
+
+        ConstLogicGate_Def getGateDef();
 
     private:
         virtual void onKlick(sf::Mouse::Button mouseButton, Vector2i mousePos);

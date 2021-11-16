@@ -7,7 +7,7 @@
 #include "toollistener.h"
 #include "physics.h"
 #include <QObject>
-#include <qDebug>
+#include <QDebug>
 
 
 
@@ -25,7 +25,8 @@ class Shape :   public QObject, public ToolListener
         Shape(const Shape &other);
         virtual ~Shape();
 
-        void setParent(Shape *parent);
+        void setOwner(Shape *parent);
+        Shape *getOwner() const;
         void setPos(Vector2i pos);
         Vector2i getPos() const;
 
@@ -48,6 +49,8 @@ class Shape :   public QObject, public ToolListener
         static void global_drawDebug(sf::RenderWindow *window);
 
         bool overlaps(const Shape &other);
+
+        size_t getObjectID();
 
     signals:
 

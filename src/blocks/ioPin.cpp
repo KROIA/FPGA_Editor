@@ -25,3 +25,7 @@ void IoPin::setVoltage(float voltage)
     Gate::setOutputs();
 }
 
+Pin::Direction IoPin::direction() const
+{
+    return m_direction;
+}

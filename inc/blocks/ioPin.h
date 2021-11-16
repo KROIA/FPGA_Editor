@@ -11,6 +11,7 @@ class IoPin :   public Gate
         ~IoPin();
 
         void setVoltage(float voltage);
+        Pin::Direction direction() const;
 
 
     protected:

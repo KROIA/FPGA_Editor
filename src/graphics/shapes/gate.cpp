@@ -217,14 +217,14 @@ void Gate::internalAddPin(const Pin &pin)
     {
         Pin *p = new Pin(pin);
         p->angle(0);
-        p->setParent(this);
+        p->setOwner(this);
         m_rightSidePinList.push_back(p);
     }
     else
     {
         Pin *p = new Pin(pin);
         p->angle(180);
-        p->setParent(this);
+        p->setOwner(this);
         m_leftSidePinList.push_back(p);
     }
 }
@@ -261,6 +261,15 @@ Pin* Gate::getLeftSidePin(const string &name) const
     }
     return nullptr;
 }
+Pin* Gate::getLeftSidePin(size_t index) const
+{
+    if(index >= m_leftSidePinList.size())
+    {
+        qDebug() << "ERROR: index out of range";
+        return nullptr;
+    }
+    return m_leftSidePinList[index];
+}
 Pin* Gate::getRightSidePin(const string &name) const
 {
     for(size_t i=0; i<m_rightSidePinList.size(); i++)
@@ -271,6 +280,15 @@ Pin* Gate::getRightSidePin(const string &name) const
         }
     }
     return nullptr;
+}
+Pin* Gate::getRightSidePin(size_t index) const
+{
+    if(index >= m_rightSidePinList.size())
+    {
+        qDebug() << "ERROR: index out of range";
+        return nullptr;
+    }
+    return m_rightSidePinList[index];
 }
 size_t Gate::getLeftSidePinCount() const
 {
@@ -331,6 +349,65 @@ void Gate::removeLastRightPin()
     m_rightSidePinList.pop_back();
     updateGate();
 }
+void Gate::removeAllLeftPins()
+{
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        delete m_leftSidePinList[i];
+    }
+    m_leftSidePinList.clear();
+    updateGate();
+}
+void Gate::removeAllRightPins()
+{
+    for(size_t i=0; i<m_rightSidePinList.size(); i++)
+    {
+        delete m_rightSidePinList[i];
+    }
+    m_rightSidePinList.clear();
+    updateGate();
+}
+void Gate::removeAllPins()
+{
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        delete m_leftSidePinList[i];
+    }
+    m_leftSidePinList.clear();
+    for(size_t i=0; i<m_rightSidePinList.size(); i++)
+    {
+        delete m_rightSidePinList[i];
+    }
+    m_rightSidePinList.clear();
+    updateGate();
+
+}
+void Gate::createConnection(const string &thisPinName,
+                      Gate *other,const string &otherPinName)
+{
+    Pin *otherPin = other->getPin(otherPinName);
+    if(otherPin == nullptr)
+    {
+        qDebug() << "ERROR Pin: "<<otherPinName.c_str() << " doesen't exist";
+        return;
+    }
+    createConnection(thisPinName,otherPin);
+}
+void Gate::createConnection(const string &thisPinName,Pin *otherPin)
+{
+    Pin *pin = getPin(thisPinName);
+    if(pin == nullptr)
+    {
+        qDebug() << "ERROR Pin: "<<thisPinName.c_str() << " doesen't exist";
+        return;
+    }
+    createConnection(pin,otherPin);
+}
+void Gate::createConnection(Pin *thisPin,Pin *otherPin)
+{
+    thisPin->createConnection(otherPin);
+}
+
 void Gate::draw(sf::RenderWindow *window, Vector2i drawPos)
 {
     if(m_parent != nullptr)
@@ -537,7 +614,41 @@ void Gate::setOutputs()
         m_rightSidePinList[i]->voltage(m_outputValues[i]);
 }
 
+vector<Gate::Connection_Def> Gate::getConnectionsDef()
+{
+    vector<Connection_Def> defList;
+    for(size_t i=0; i<m_connectionList.size(); i++)
+    {
+        Connection_Def def;
+        def.beginGateID = m_connectionList[i]->startPin()->getOwner()->getObjectID();
+        def.beginPin    = m_connectionList[i]->startPin()->name();
 
+        def.endGateID = m_connectionList[i]->endPin()->getOwner()->getObjectID();
+        def.endPin    = m_connectionList[i]->endPin()->name();
+        defList.push_back(def);
+    }
+    return defList;
+}
+
+void Gate::onConnectionCreate(Pin *pin,Connection *con)
+{
+    for(size_t i=0; i<m_leftSidePinList.size(); i++)
+    {
+        if(m_leftSidePinList[i] == pin)
+            m_connectionList.push_back(con);
+    }
+
+}
+void Gate::onConnectionRemove(Pin *pin,Connection *con)
+{
+    for(size_t i=0; i<m_connectionList.size(); i++)
+    {
+        if(m_connectionList[i] == con)
+        {
+            m_connectionList.erase(m_connectionList.begin()+i);
+        }
+    }
+}
 
 void Gate::toolChanged(Tool *oldTool, Tool *newTool)
 {

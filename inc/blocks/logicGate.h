@@ -18,19 +18,30 @@ class LogicGate     :   public Gate
 
             __NOT_DEFINED
         };
+        struct LogicGate_Def
+        {
+            LogicGate::Logic logic;
+            vector<string> pinNames;
+            Vector2i pos;
+            size_t gateID;
+            vector<Connection_Def> connections;
+        };
 
         LogicGate(const LogicGate &other);
         LogicGate(int inputs);
         LogicGate(Vector2i pos,int inputs);
         ~LogicGate();
 
-        virtual Gate *clone() const;
+        virtual LogicGate *clone() const;
 
         void logic(Logic logic);
         Logic logic() const;
 
         static string logicToString(Logic logic);
         static Logic stringToLogic(const string &logicStr);
+
+        LogicGate_Def getGateDef();
+
 
     private:
         void processLogic();

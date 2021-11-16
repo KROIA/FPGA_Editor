@@ -83,6 +83,7 @@ class MainWindow : public QMainWindow
 
 
         void addGate(Gate *gate);
+        void addGate(Module *module);
         void addLogicGate(LogicGate::Logic logic);
         QToolButton* addRibbonButton(const string &tab,
                                      const string &group,
@@ -97,6 +98,7 @@ class MainWindow : public QMainWindow
         vector<Gate*>  m_shapes;
         vector<Shape*>  m_shapesDeleteLater;
         vector<Gate*>   m_shapesAddLater;
+        vector<Module*>   m_moduleAddLater;
         Module *m_topModule;
         vector<Module*> m_openModuleStack;
 
@@ -113,6 +115,8 @@ class MainWindow : public QMainWindow
 
         QTimer *m_simulationTimer;
         int m_simulationTimeMS;
+
+        Module *testModule;
 
         // Buttons
             // Tools

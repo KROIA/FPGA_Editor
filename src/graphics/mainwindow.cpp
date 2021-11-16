@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_topModule = new Module();
     m_topModule->setViewInside(true);
+    m_topModule->isLibBlock(true);
     m_topModule->addIO("input1",Pin::Direction::input);
     //m_topModule->addIO("input2",Pin::Direction::input);
     //m_topModule->addIO("input3",Pin::Direction::input);
@@ -37,11 +38,14 @@ MainWindow::MainWindow(QWidget *parent)
     m_openModuleStack.push_back(m_topModule);
 
     Module *newModule = new Module();
+    newModule->isLibBlock(true);
     newModule->name("test");
     newModule->addIO("in1",Pin::Direction::input);
     newModule->addIO("in2",Pin::Direction::input);
     newModule->addIO("out",Pin::Direction::output);
     newModule->setPos(Vector2i(50,50));
+    testModule = newModule;
+
     m_topModule->addGate(newModule);
     connect(newModule,&Module::insideViewEnter,this,&MainWindow::onInsideViewEnter);
     connect(newModule,&Module::insideViewExit,this,&MainWindow::onInsideViewExit);
@@ -298,6 +302,22 @@ void MainWindow::onFrameUpdate()
     }
     m_shapesAddLater.clear();
 
+    for(size_t i=0; i<m_moduleAddLater.size(); i++)
+    {
+        //m_shapes.push_back(m_shapesAddLater[i]);
+        m_openModuleStack[m_openModuleStack.size()-1]->addGate(m_moduleAddLater[i]);
+        connect(m_moduleAddLater[i],&Gate::placed,this,&MainWindow::onPlaced);
+        connect(m_moduleAddLater[i],&Gate::startsMoving,this,&MainWindow::onStartMoving);
+        connect(m_moduleAddLater[i],&Gate::clicked,this,&MainWindow::onClicked);
+        connect(m_moduleAddLater[i],&Gate::addCopyOf,this,&MainWindow::onAddCopyOf);
+        connect(m_moduleAddLater[i],&Module::insideViewEnter,this,&MainWindow::onInsideViewEnter);
+        connect(m_moduleAddLater[i],&Module::insideViewExit,this,&MainWindow::onInsideViewExit);
+        //connect(m_shapesAddLater[i],&Shape::deleteRequest,this,&MainWindow::onDeleteRequest);
+    }
+    m_moduleAddLater.clear();
+
+
+
     if(!m_simulationTimer->isActive())
     {
         m_topModule->utilityUpdate();
@@ -499,6 +519,25 @@ void MainWindow::checkKeyEvents()
         //m_connectToolButton->setCheckable(false);
         //m_moveToolButton->setCheckable(false);
     }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && Tool::getSelectedType() == Tool::Type::none)
+    {
+        Module *module = testModule->clone();
+        if(module != nullptr)
+        {
+
+            m_tool_move->setSelected(true);
+            Tool::getSelected()->isUsed(true);
+            module->snapToMouse(true);
+            module->deleteOnEscape(true);
+            addGate(module);
+            unselectAllButtons();
+            m_moveToolButton->setStyleSheet("background-color: #cadeea");
+        }
+        else
+        {
+            qDebug() << "can't create gate";
+        }
+    }
 }
 
 void MainWindow::onSimulateIteration()
@@ -567,6 +606,10 @@ void MainWindow::onInsideViewExit(Module *module)
 void MainWindow::addGate(Gate *gate)
 {
     m_shapesAddLater.push_back(gate);
+}
+void MainWindow::addGate(Module *module)
+{
+    m_moduleAddLater.push_back(module);
 }
 
 void MainWindow::addLogicGate(LogicGate::Logic logic)

@@ -38,7 +38,7 @@ LogicGate::~LogicGate()
 
 }
 
-Gate *LogicGate::clone() const
+LogicGate *LogicGate::clone() const
 {
     return new LogicGate(*this);
 }
@@ -84,6 +84,20 @@ LogicGate::Logic LogicGate::stringToLogic(const string &logicStr)
     if(logicStr.find(logicToString(Logic::XNOR))!=string::npos) return Logic::XNOR;
     if(logicStr.find(logicToString(Logic::NOT))!=string::npos) return Logic::NOT;
     return __NOT_DEFINED;
+}
+
+LogicGate::LogicGate_Def LogicGate::getGateDef()
+{
+    LogicGate_Def def;
+    def.logic = m_logic;
+    def.pos = m_position;
+    def.gateID = Gate::getObjectID();
+    for(size_t i=0; i<Gate::getLeftSidePinCount(); i++)
+    {
+        def.pinNames.push_back(Gate::getLeftPins()[i]->name());
+    }
+    def.connections = Gate::getConnectionsDef();
+    return def;
 }
 
 void LogicGate::processLogic()

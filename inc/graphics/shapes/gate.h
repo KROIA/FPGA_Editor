@@ -8,7 +8,6 @@
 
 class Gate  :   public Shape
 {
-
     Q_OBJECT
 
     public:
@@ -20,6 +19,14 @@ class Gate  :   public Shape
             int angle;
             Pin *pin;
         };*/
+        struct Connection_Def
+        {
+            size_t beginGateID;
+            string beginPin;
+
+            size_t endGateID;
+            string endPin;
+        };
         Gate();
         Gate(int inputs, int outputs);
         Gate(Vector2i pos,int inputs, int outputs);
@@ -28,6 +35,7 @@ class Gate  :   public Shape
 
         virtual Gate *clone() const;
 
+
         void name(const string &name);
         string name() const;
 
@@ -35,7 +43,9 @@ class Gate  :   public Shape
         void addPin(const vector<Pin> &pinList);
         Pin* getPin(const string &name) const;
         Pin* getLeftSidePin(const string &name) const;
+        Pin* getLeftSidePin(size_t index) const;
         Pin* getRightSidePin(const string &name) const;
+        Pin* getRightSidePin(size_t index) const;
 
         size_t getLeftSidePinCount() const;
         size_t getRightSidePinCount() const;
@@ -43,6 +53,14 @@ class Gate  :   public Shape
         void removePin(const string &name);
         void removeLastLeftPin();
         void removeLastRightPin();
+        void removeAllLeftPins();
+        void removeAllRightPins();
+        void removeAllPins();
+
+        void createConnection(const string &thisPinName,
+                              Gate *other,const string &otherPinName);
+        void createConnection(const string &thisPinName,Pin *otherPin);
+        void createConnection(Pin *thisPin,Pin *otherPin);
 
 
         virtual void draw(sf::RenderWindow *window, Vector2i drawPos = Vector2i(0,0));
@@ -78,6 +96,7 @@ class Gate  :   public Shape
         virtual void processLogic();
         virtual void setOutputs();
 
+        vector<Connection_Def> getConnectionsDef();
 
 
     signals:
@@ -86,6 +105,10 @@ class Gate  :   public Shape
         void clicked(Gate *gate);
         void addCopyOf(Gate *gate);
         void deleteRequest(Gate *gate);
+
+    private slots:
+        void onConnectionCreate(Pin *pin,Connection *con);
+        void onConnectionRemove(Pin *pin,Connection *con);
 
     protected:
         // From ToolListener
@@ -108,6 +131,7 @@ class Gate  :   public Shape
 
         Vector2i m_dimensions;
 
+
         sf::Text m_label;
         static sf::Font *m_font;
         //sf::Transform m_transform;
@@ -124,6 +148,7 @@ class Gate  :   public Shape
 
         vector<Pin*> m_leftSidePinList;
         vector<Pin*> m_rightSidePinList;
+        vector<Connection *> m_connectionList;
 
         //vector<PinSnapPoint> m_pinSnapPointList;
 
