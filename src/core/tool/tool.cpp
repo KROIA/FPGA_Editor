@@ -1,5 +1,9 @@
 #include "tool.h"
 
+using std::vector;
+using std::size_t;
+
+
 Tool *Tool::m_selected = nullptr;
 bool Tool::broadcastingToListeners = false;
 vector<ToolListener* > Tool::m_toolListener;

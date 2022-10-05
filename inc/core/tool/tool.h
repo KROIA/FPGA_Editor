@@ -3,9 +3,7 @@
 
 #include "classdef.h"
 #include "toollistener.h"
-#include "vector"
-
-using std::vector;
+#include <vector>
 
 class Tool
 {
@@ -51,8 +49,8 @@ class Tool
         bool m_isInUse;
 
         static bool broadcastingToListeners;
-        static vector<ToolListener* > m_toolListener;
-        static vector<ToolListener* > m_listenerToAdd;
-        static vector<ToolListener* > m_listenerToRemove;
+        static std::vector<ToolListener* > m_toolListener;
+        static std::vector<ToolListener* > m_listenerToAdd;
+        static std::vector<ToolListener* > m_listenerToRemove;
 };
 #endif

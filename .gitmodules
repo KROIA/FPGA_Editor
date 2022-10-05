@@ -1,6 +1,6 @@
 [submodule "extern/SFML"]
 	path = extern/SFML
-	url = https://github.com/SFML/SFML
+	url = https://github.com/SFML/SFML/tree/2.6.x
 [submodule "extern/QT-Ribbon-Widget"]
 	path = extern/QT-Ribbon-Widget
 	url = https://github.com/KROIA/Qt-Ribbon-Widget
